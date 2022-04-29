@@ -18,7 +18,9 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "seed": "run-s seed:*",
+    "seed:user": "mongoimport --db iot-tracker-dev --collection users --file /home/rajesh/Documents/projects/iot-vehicle-tracker/tracker-api/seed/data/users.json --jsonArray --username developer --password developer --authenticationDatabase admin"
   },
   "dependencies": {
     "@nestjs/common": "^8.0.0",
@@ -62,6 +64,7 @@
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^4.0.0",
     "jest": "^27.2.5",
+    "npm-run-all": "^4.1.5",
     "prettier": "^2.3.2",
     "source-map-support": "^0.5.20",
     "supertest": "^6.1.3",
