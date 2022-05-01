@@ -63,24 +63,33 @@ import { CoreModule } from './modules/core/core.module';
         prefix: QUEUE_PREFIX,
       }),
     }),
-    // MailerModule.forRootAsync({
-    //   inject: [ConfigService],
-    //   useFactory: (config: ConfigService) => {
-    //     return {
-    //       transport: config.get<string>(ENV_CONSTANTS.SMTP_URL),
-    //       defaults: {
-    //         from: config.get<string>(ENV_CONSTANTS.EMAIL_FROM),
-    //       },
-    //       template: {
-    //         dir: path.join(__dirname, '..', 'views'),
-    //         adapter: new EjsAdapter(),
-    //         options: {
-    //           strict: true,
-    //         },
-    //       },
-    //     };
-    //   },
-    // }),
+    MailerModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => {
+        return {
+          transport: {
+            host: config.get<string>(ENV_CONSTANTS.SMTP_HOST),
+            port: config.get<number>(ENV_CONSTANTS.SMTP_PORT),
+            pool: true,
+            secure: true,
+            auth: {
+              user: config.get<string>(ENV_CONSTANTS.SMTP_USER),
+              pass: config.get<string>(ENV_CONSTANTS.SMTP_PASS),
+            },
+          },
+          defaults: {
+            from: config.get<string>(ENV_CONSTANTS.EMAIL_FROM),
+          },
+          template: {
+            dir: path.join(__dirname, '..', 'views', 'emails'),
+            adapter: new EjsAdapter(),
+            options: {
+              strict: false,
+            },
+          },
+        };
+      },
+    }),
     CoreModule,
     DatabaseModule,
     AuthModule,

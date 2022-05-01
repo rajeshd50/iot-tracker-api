@@ -4,7 +4,9 @@ import { ApiSuccessResponse } from 'src/common/app.response';
 
 import { UserService } from '../user/user.service';
 import { comparePassword } from './auth.util';
+import { ForgetPasswordDto } from './dto/forget-password.dto';
 import { RegisterDto } from './dto/register.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 import { LoginEntity } from './entities/login.entity';
 
 @Injectable()
@@ -73,6 +75,38 @@ export class AuthService {
       }
       throw new HttpException(
         'Error while registering user',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  public async forgetPassword(data: ForgetPasswordDto) {
+    try {
+      await this.userService.initiateResetPassword(data.email);
+    } catch (error) {
+      this.logger.error(
+        `Error while sending forget password email to user`,
+        error,
+      );
+    }
+    return ApiSuccessResponse(
+      {},
+      'If user exists email will be sent soon',
+      HttpStatus.OK,
+    );
+  }
+
+  public async resetPassword(data: ResetPasswordDto) {
+    try {
+      await this.userService.resetPassword(data);
+      return ApiSuccessResponse({}, 'Password reset success');
+    } catch (error) {
+      this.logger.error(`Error while resetting user password`, error);
+      if (error instanceof HttpException) {
+        throw HttpException;
+      }
+      throw new HttpException(
+        'Error while resetting user password',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
