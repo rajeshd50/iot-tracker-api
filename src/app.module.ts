@@ -19,9 +19,6 @@ import { RolesGuard } from './modules/auth/guards/user-role.guard';
 import { BullModule } from '@nestjs/bull';
 import { CoreModule } from './modules/core/core.module';
 
-const rds = fs.readFileSync(
-  path.resolve(__dirname, '../rds-combined-ca-bundle.pem'),
-);
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -29,16 +26,26 @@ const rds = fs.readFileSync(
     }),
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
-        uri: configService.get<string>(ENV_CONSTANTS.DB_URI),
-        // dbName: configService.get<string>(ENV_CONSTANTS.DB_NAME),
-        tlsCAFile: rds,
-        ssl: true,
-        sslValidate: false,
-        readPreference: 'secondaryPreferred',
-        replicaSet: 'rs0',
-        retryWrites: false,
-      }),
+      useFactory: async (configService: ConfigService) => {
+        if (configService.get<string>(ENV_CONSTANTS.ENV) === 'dev') {
+          console.log('Here');
+          return {
+            uri: configService.get<string>(ENV_CONSTANTS.DB_URI),
+            dbName: configService.get<string>(ENV_CONSTANTS.DB_NAME),
+          };
+        } else {
+          const tlsCAFile = path.resolve(
+            __dirname,
+            '../rds-combined-ca-bundle.pem',
+          );
+          return {
+            uri: configService.get<string>(ENV_CONSTANTS.DB_URI),
+            tlsCAFile,
+            ssl: true,
+            sslValidate: false,
+          };
+        }
+      },
       inject: [ConfigService],
       connectionName: STRING_CONSTANTS.MAIN_DOC_DB_CONNECTION_NAME,
     }),
