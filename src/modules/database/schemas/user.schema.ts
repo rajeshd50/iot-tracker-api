@@ -18,6 +18,23 @@ export class User {
   role: ROLE;
 
   @Prop({
+    default: false,
+  })
+  emailVerified: boolean;
+
+  @Prop()
+  emailVerifyToken: string;
+
+  @Prop()
+  emailVerifyExpiresAt: Date;
+
+  @Prop()
+  resetPasswordToken: string;
+
+  @Prop()
+  resetPasswordExpiresAt: Date;
+
+  @Prop({
     default: true,
   })
   isActive: boolean;

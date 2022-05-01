@@ -1,17 +1,18 @@
 import {
-  HttpCode,
+  forwardRef,
   HttpException,
   HttpStatus,
+  Inject,
   Injectable,
   Logger,
 } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model, FilterQuery, AnyKeys, Types } from 'mongoose';
+import { FilterQuery, AnyKeys, Types } from 'mongoose';
 import { ApiResponse, ApiSuccessResponse } from 'src/common/app.response';
 import { ROLE } from 'src/config';
 import { createPasswordHash } from '../auth/auth.util';
+import { UserRepoService } from '../database/repositories/UserRepo.service';
 
-import { User, UserDocument } from '../database/schemas/user.schema';
+import { UserDocument } from '../database/schemas/user.schema';
 import { UpdateUserDto } from './dto/user.update.dto';
 import { UsersListResultEntity } from './entities/user-list.entity';
 import { UserEntity } from './entities/user.entity';
@@ -20,13 +21,16 @@ import { UserEntity } from './entities/user.entity';
 export class UserService {
   private logger = new Logger(UserService.name);
 
-  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
+  constructor(
+    @Inject(forwardRef(() => UserRepoService))
+    private userRepoService: UserRepoService,
+  ) {}
 
   public async findOne(
     filter: FilterQuery<UserDocument>,
   ): Promise<UserDocument | null> {
     try {
-      return this.userModel.findOne(filter);
+      return this.userRepoService.findOne(filter);
     } catch (error) {
       this.logger.error(`Error while finding user`, error);
       throw new HttpException('User not found', HttpStatus.NOT_FOUND);
@@ -37,14 +41,14 @@ export class UserService {
     userData: AnyKeys<UserDocument>,
   ): Promise<UserDocument | null> {
     try {
-      const existingUserWithEmail = await this.userModel.findOne({
-        email: userData.email,
-      });
+      const existingUserWithEmail = await this.userRepoService.findByEmail(
+        userData.email,
+      );
       if (existingUserWithEmail) {
         throw new HttpException('Email already exists', HttpStatus.BAD_REQUEST);
       }
       const password = await createPasswordHash(userData.password);
-      return this.userModel.create({
+      return this.userRepoService.create({
         ...userData,
         password,
       });
@@ -60,7 +64,7 @@ export class UserService {
   public async getUserProfile(email: string): Promise<ApiResponse> {
     this.logger.log(`user email ${email}`);
     try {
-      const user = await this.userModel.findOne({ email }, null, {
+      const user = await this.userRepoService.findByEmail(email, null, {
         lean: true,
       });
       return ApiSuccessResponse(new UserEntity(user), 'User profile');
@@ -72,7 +76,7 @@ export class UserService {
 
   public async getAllUsers(user: UserEntity): Promise<ApiResponse> {
     try {
-      const users = await this.userModel.find(
+      const users = await this.userRepoService.findAll(
         {
           _id: {
             $ne: new Types.ObjectId(String(user._id)),
@@ -101,13 +105,10 @@ export class UserService {
     userEntity: UserEntity,
   ): Promise<ApiResponse> {
     try {
-      const user = await this.userModel.findByIdAndUpdate(
+      const user = await this.userRepoService.findByIdAndUpdate(
         userEntity._id,
         {
           ...data,
-        },
-        {
-          new: true,
         },
       );
       return ApiSuccessResponse(

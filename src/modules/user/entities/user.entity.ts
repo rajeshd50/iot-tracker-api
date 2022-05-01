@@ -5,7 +5,9 @@ import { ObjectId } from 'mongoose';
 export class UserEntity {
   @Expose()
   public get id() {
-    return this._id ? (this._id as any).toHexString() : undefined;
+    return this._id && typeof this._id === 'object'
+      ? (this._id as any).toHexString()
+      : this._id;
   }
   @Exclude()
   _id: object;
@@ -26,6 +28,20 @@ export class UserEntity {
   createdAt: string;
   @Exclude()
   updatedAt: string;
+
+  @Exclude()
+  emailVerifyToken: string;
+
+  @Exclude()
+  emailVerifyExpiresAt: Date | string;
+
+  @Exclude()
+  resetPasswordToken: string;
+
+  @Exclude()
+  resetPasswordExpiresAt: Date | string;
+
+  emailVerified: boolean;
 
   @Expose()
   get fullName(): string {
