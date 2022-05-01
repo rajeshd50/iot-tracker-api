@@ -31,8 +31,8 @@ const rds = fs.readFileSync(
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
         uri: configService.get<string>(ENV_CONSTANTS.DB_URI),
-        dbName: configService.get<string>(ENV_CONSTANTS.DB_NAME),
-        sslCA: rds,
+        // dbName: configService.get<string>(ENV_CONSTANTS.DB_NAME),
+        tlsCAFile: rds,
         ssl: true,
         sslValidate: false,
       }),
