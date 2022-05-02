@@ -34,13 +34,38 @@ export class UserTaskProcessor {
             ENV_CONSTANTS.UI_URL,
           )}${this.configService.get<string>(
             ENV_CONSTANTS.RESET_PASSWORD_URL,
-          )}`,
+          )}?token=${encodeURIComponent(userData.resetPasswordToken)}`,
         },
         template: 'user-reset-password-email',
       });
     } catch (error) {
       console.log(error);
       this.logger.log(`Error while sending reset password email`);
+    }
+  }
+
+  @Process(QUEUE_CONSTANTS.USER_SERVICE_QUEUE.TASKS.SEND_EMAIL_VERIFY_EMAIL)
+  async sendEmailVerificationMail(job: Job) {
+    try {
+      const userData: UserDocument = job.data.userData;
+      await this.mailerService.sendMail({
+        to: userData.email,
+        from: this.configService.get<string>(ENV_CONSTANTS.EMAIL_FROM),
+        subject: `Vehicle Tracker: Verify Email`,
+        context: {
+          name: userData.firstName,
+          subject: `Vehicle Tracker: Verify Email`,
+          verificationLink: `${this.configService.get<string>(
+            ENV_CONSTANTS.UI_URL,
+          )}${this.configService.get<string>(
+            ENV_CONSTANTS.VERIFY_EMAIL_URL,
+          )}?token=${encodeURIComponent(userData.emailVerifyToken)}`,
+        },
+        template: 'user-mail-verify-email',
+      });
+    } catch (error) {
+      console.log(error);
+      this.logger.log(`Error while sending email verify email`);
     }
   }
 }

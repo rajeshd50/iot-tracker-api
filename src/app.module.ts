@@ -71,7 +71,7 @@ import { CoreModule } from './modules/core/core.module';
             host: config.get<string>(ENV_CONSTANTS.SMTP_HOST),
             port: config.get<number>(ENV_CONSTANTS.SMTP_PORT),
             pool: true,
-            secure: true,
+            secure: false,
             auth: {
               user: config.get<string>(ENV_CONSTANTS.SMTP_USER),
               pass: config.get<string>(ENV_CONSTANTS.SMTP_PASS),

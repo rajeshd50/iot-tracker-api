@@ -53,10 +53,12 @@ export class UserRepoService {
           projection,
           options,
         );
-        await this.cacheManager.set(
-          CACHE_CONSTANTS.USER.BY_EMAIL(email),
-          userData,
-        );
+        if (userData) {
+          await this.cacheManager.set(
+            CACHE_CONSTANTS.USER.BY_EMAIL(email),
+            userData,
+          );
+        }
       } else {
         this.logger.log('Returning from cache');
       }

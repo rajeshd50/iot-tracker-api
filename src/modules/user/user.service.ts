@@ -190,4 +190,67 @@ export class UserService {
       throw new HttpException('Invalid request', HttpStatus.BAD_REQUEST);
     }
   }
+
+  public async initiateVerifyEmail(email: string): Promise<ApiResponse> {
+    try {
+      const user = await this.userRepoService.findByEmail(email, null, {
+        lean: true,
+      });
+      if (user.emailVerified) {
+        throw new HttpException(
+          'Email already verified',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      const emailVerifyToken = await createPasswordHash(
+        `${user.email}_${new Date().getTime()}`,
+      );
+      const emailVerifyExpiresAt = add(new Date(), {
+        days: 1,
+      });
+      const userUpdated = await this.userRepoService.findByIdAndUpdate(
+        user._id,
+        {
+          emailVerifyToken,
+          emailVerifyExpiresAt,
+        },
+      );
+      await this.userJobQueue.add(
+        QUEUE_CONSTANTS.USER_SERVICE_QUEUE.TASKS.SEND_EMAIL_VERIFY_EMAIL,
+        {
+          userData: userUpdated.toObject(),
+        },
+      );
+      return ApiSuccessResponse(
+        new UserEntity(userUpdated),
+        'Initiated user verify email',
+      );
+    } catch (error) {
+      this.logger.error(`Error while sending email verify email`, error);
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
+  }
+
+  public async verifyEmail(emailVerifyToken: string): Promise<ApiResponse> {
+    try {
+      const user = await this.userRepoService.findOne({
+        emailVerifyToken,
+      });
+      if (isBefore(user.resetPasswordExpiresAt, new Date())) {
+        throw new HttpException('Link expired', HttpStatus.NOT_FOUND);
+      }
+      const userUpdated = await this.userRepoService.findByIdAndUpdate(
+        user._id,
+        {
+          emailVerifyToken: null,
+          emailVerifyExpiresAt: null,
+          emailVerified: true,
+        },
+      );
+      return ApiSuccessResponse(new UserEntity(userUpdated), 'Email verified');
+    } catch (error) {
+      this.logger.error(`Error while verifying user email`, error);
+      throw new HttpException('Invalid request', HttpStatus.BAD_REQUEST);
+    }
+  }
 }

@@ -5,8 +5,10 @@ import { ApiSuccessResponse } from 'src/common/app.response';
 import { UserService } from '../user/user.service';
 import { comparePassword } from './auth.util';
 import { ForgetPasswordDto } from './dto/forget-password.dto';
+import { InitiateEmailVerificationDto } from './dto/initiate-email-verification.dto';
 import { RegisterDto } from './dto/register.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { VerifyEmailDto } from './dto/verify-email.dto';
 import { LoginEntity } from './entities/login.entity';
 
 @Injectable()
@@ -67,6 +69,7 @@ export class AuthService {
   public async register(registerData: RegisterDto) {
     try {
       const user = await this.userService.create(registerData);
+      await this.userService.initiateVerifyEmail(user.email);
       return this.login(user);
     } catch (error) {
       this.logger.error(`Error while register user`, error);
@@ -107,6 +110,38 @@ export class AuthService {
       }
       throw new HttpException(
         'Error while resetting user password',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  public async sendEmailVerificationMail(data: InitiateEmailVerificationDto) {
+    try {
+      await this.userService.initiateVerifyEmail(data.email);
+      return ApiSuccessResponse({}, 'Verification email sent');
+    } catch (error) {
+      this.logger.error(`Error while sending email verification mail`, error);
+      if (error instanceof HttpException) {
+        throw HttpException;
+      }
+      throw new HttpException(
+        'Error while sending email verification mail',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  public async verifyEmail(data: VerifyEmailDto) {
+    try {
+      await this.userService.verifyEmail(data.emailVerifyToken);
+      return ApiSuccessResponse({}, 'Email verified');
+    } catch (error) {
+      this.logger.error(`Error while verifying email`, error);
+      if (error instanceof HttpException) {
+        throw HttpException;
+      }
+      throw new HttpException(
+        'Error while verifying email',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
