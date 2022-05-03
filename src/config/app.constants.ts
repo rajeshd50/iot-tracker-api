@@ -6,3 +6,5 @@ export const BCRYPT_SALT_ROUND = 10;
 export const JWT_EXPIRES_IN = '7d';
 export const DEFAULT_CACHE_TTL = 60 * 60;
 export const QUEUE_PREFIX = 'tracker_';
+export const DEFAULT_PER_PAGE = 10;
+export const SERIAL_PREFIX = 'SN';

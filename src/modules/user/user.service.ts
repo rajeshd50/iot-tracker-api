@@ -102,6 +102,9 @@ export class UserService {
       );
     } catch (error) {
       this.logger.error(`Error while finding users`, error);
+      if (error instanceof HttpException) {
+        throw error;
+      }
       throw new HttpException('User not found', HttpStatus.NOT_FOUND);
     }
   }
@@ -126,6 +129,9 @@ export class UserService {
       );
     } catch (error) {
       this.logger.error(`Error while updating users`, error);
+      if (error instanceof HttpException) {
+        throw error;
+      }
       throw new HttpException('Unable to update user', HttpStatus.NOT_MODIFIED);
     }
   }
@@ -160,6 +166,9 @@ export class UserService {
       );
     } catch (error) {
       this.logger.error(`Error while finding user profile`, error);
+      if (error instanceof HttpException) {
+        throw error;
+      }
       throw new HttpException('User not found', HttpStatus.NOT_FOUND);
     }
   }
@@ -187,6 +196,9 @@ export class UserService {
       );
     } catch (error) {
       this.logger.error(`Error while changing user password`, error);
+      if (error instanceof HttpException) {
+        throw error;
+      }
       throw new HttpException('Invalid request', HttpStatus.BAD_REQUEST);
     }
   }
@@ -227,6 +239,9 @@ export class UserService {
       );
     } catch (error) {
       this.logger.error(`Error while sending email verify email`, error);
+      if (error instanceof HttpException) {
+        throw error;
+      }
       throw new HttpException('User not found', HttpStatus.NOT_FOUND);
     }
   }
@@ -250,6 +265,9 @@ export class UserService {
       return ApiSuccessResponse(new UserEntity(userUpdated), 'Email verified');
     } catch (error) {
       this.logger.error(`Error while verifying user email`, error);
+      if (error instanceof HttpException) {
+        throw error;
+      }
       throw new HttpException('Invalid request', HttpStatus.BAD_REQUEST);
     }
   }

@@ -24,6 +24,9 @@ export class AuthService {
       const user = await this.userService.findOne({
         email,
       });
+      if (!user) {
+        return null;
+      }
       const isPasswordMatch = await comparePassword(user.password, password);
       if (user && isPasswordMatch) {
         const { password, ...result } = user.toObject();

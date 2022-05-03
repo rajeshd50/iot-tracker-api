@@ -22,7 +22,7 @@ export class UserEntity {
 
   firstName: string;
   lastName: string;
-  role: string;
+  role: ROLE;
 
   @Exclude()
   createdAt: string;
@@ -33,15 +33,16 @@ export class UserEntity {
   emailVerifyToken: string;
 
   @Exclude()
-  emailVerifyExpiresAt: Date | string;
+  emailVerifyExpiresAt: Date;
 
   @Exclude()
   resetPasswordToken: string;
 
   @Exclude()
-  resetPasswordExpiresAt: Date | string;
+  resetPasswordExpiresAt: Date;
 
   emailVerified: boolean;
+  isActive: boolean;
 
   @Expose()
   get fullName(): string {

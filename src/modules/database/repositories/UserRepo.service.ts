@@ -45,7 +45,6 @@ export class UserRepoService {
         CACHE_CONSTANTS.USER.BY_EMAIL(email),
       );
       if (!userData) {
-        this.logger.log('Returning from db');
         userData = await this.userModel.findOne(
           {
             email,
@@ -59,8 +58,6 @@ export class UserRepoService {
             userData,
           );
         }
-      } else {
-        this.logger.log('Returning from cache');
       }
       return userData;
     } catch (error) {
@@ -88,7 +85,7 @@ export class UserRepoService {
     try {
       return this.userModel.find(query, projection, options);
     } catch (error) {
-      this.logger.error(`Error while creating user`, error);
+      this.logger.error(`Error while finding user`, error);
       throw error;
     }
   }

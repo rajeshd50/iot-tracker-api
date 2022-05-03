@@ -18,6 +18,7 @@ import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
 import { RolesGuard } from './modules/auth/guards/user-role.guard';
 import { BullModule } from '@nestjs/bull';
 import { CoreModule } from './modules/core/core.module';
+import { DeviceModule } from './modules/device/device.module';
 
 @Module({
   imports: [
@@ -94,6 +95,7 @@ import { CoreModule } from './modules/core/core.module';
     DatabaseModule,
     AuthModule,
     UserModule,
+    DeviceModule,
   ],
   providers: [
     Logger,

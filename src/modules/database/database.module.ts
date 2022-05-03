@@ -4,7 +4,11 @@ import { MongooseModule } from '@nestjs/mongoose';
 import * as redisStore from 'cache-manager-redis-store';
 
 import { DEFAULT_CACHE_TTL, ENV_CONSTANTS, STRING_CONSTANTS } from 'src/config';
+import { DevicePoolRepoService } from './repositories/DevicePoolRepo.service';
+import { DeviceRepoService } from './repositories/DeviceRepo.service';
 import { UserRepoService } from './repositories/UserRepo.service';
+import { DevicePool, DevicePoolSchema } from './schemas/device-pool.schema';
+import { Device, DeviceSchema } from './schemas/device.schema';
 import { User, UserSchema } from './schemas/user.schema';
 
 @Global()
@@ -25,11 +29,20 @@ import { User, UserSchema } from './schemas/user.schema';
       }),
     }),
     MongooseModule.forFeature(
-      [{ name: User.name, schema: UserSchema }],
+      [
+        { name: User.name, schema: UserSchema },
+        { name: DevicePool.name, schema: DevicePoolSchema },
+        { name: Device.name, schema: DeviceSchema },
+      ],
       STRING_CONSTANTS.MAIN_DOC_DB_CONNECTION_NAME,
     ),
   ],
-  providers: [UserRepoService],
-  exports: [MongooseModule, UserRepoService],
+  providers: [UserRepoService, DevicePoolRepoService, DeviceRepoService],
+  exports: [
+    MongooseModule,
+    UserRepoService,
+    DevicePoolRepoService,
+    DeviceRepoService,
+  ],
 })
 export class DatabaseModule {}
