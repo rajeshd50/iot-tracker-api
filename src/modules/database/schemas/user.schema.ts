@@ -40,10 +40,43 @@ export class User {
   isActive: boolean;
 
   @Prop()
+  title: string;
+
+  @Prop()
   firstName: string;
 
   @Prop()
+  middleName: string;
+
+  @Prop()
   lastName: string;
+
+  @Prop()
+  addressLine1: string;
+
+  @Prop()
+  addressLine2: string;
+
+  @Prop()
+  city: string;
+
+  @Prop()
+  state: string;
+
+  @Prop()
+  zip: string;
+
+  @Prop()
+  country: string;
+
+  @Prop()
+  primaryContactNumber: string;
+
+  @Prop()
+  secondaryContactNumber: string;
+
+  @Prop()
+  alternateEmailAddress: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

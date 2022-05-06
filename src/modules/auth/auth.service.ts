@@ -1,9 +1,11 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { ApiSuccessResponse } from 'src/common/app.response';
+import { ApiResponse, ApiSuccessResponse } from 'src/common/app.response';
+import { UserEntity } from '../user/entities/user.entity';
 
 import { UserService } from '../user/user.service';
 import { comparePassword } from './auth.util';
+import { ChangePasswordDto } from './dto/change-password.dto';
 import { ForgetPasswordDto } from './dto/forget-password.dto';
 import { InitiateEmailVerificationDto } from './dto/initiate-email-verification.dto';
 import { RegisterDto } from './dto/register.dto';
@@ -39,7 +41,7 @@ export class AuthService {
     }
   }
 
-  public async login(userFromReq: any) {
+  public async login(userFromReq: any): Promise<ApiResponse> {
     try {
       const payload = {
         email: userFromReq.email,
@@ -69,7 +71,7 @@ export class AuthService {
     }
   }
 
-  public async register(registerData: RegisterDto) {
+  public async register(registerData: RegisterDto): Promise<ApiResponse> {
     try {
       const user = await this.userService.create(registerData);
       await this.userService.initiateVerifyEmail(user.email);
@@ -86,7 +88,7 @@ export class AuthService {
     }
   }
 
-  public async forgetPassword(data: ForgetPasswordDto) {
+  public async forgetPassword(data: ForgetPasswordDto): Promise<ApiResponse> {
     try {
       await this.userService.initiateResetPassword(data.email);
     } catch (error) {
@@ -145,6 +147,27 @@ export class AuthService {
       }
       throw new HttpException(
         'Error while verifying email',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  public async changePassword(
+    data: ChangePasswordDto,
+    userEntity: UserEntity,
+  ): Promise<ApiResponse> {
+    try {
+      return this.userService.changePassword(data, userEntity);
+    } catch (error) {
+      this.logger.error(
+        `Error while sending forget password email to user`,
+        error,
+      );
+      if (error instanceof HttpException) {
+        throw HttpException;
+      }
+      throw new HttpException(
+        'Error while changing password',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }

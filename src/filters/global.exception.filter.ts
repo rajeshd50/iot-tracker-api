@@ -11,8 +11,8 @@ import {
 @Catch()
 export class GlobalExceptionsFilter implements ExceptionFilter {
   private logger = new Logger(GlobalExceptionsFilter.name);
-  constructor() {}
   catch(exception: unknown, host: ArgumentsHost) {
+    this.logger.log(exception);
     const ctx = host.switchToHttp();
     const response = ctx.getResponse();
     const request = ctx.getRequest();

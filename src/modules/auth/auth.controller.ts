@@ -7,7 +7,10 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { Public } from 'src/decorators/public.decorator';
+import { UserData } from 'src/decorators/user.decorator';
+import { UserEntity } from '../user/entities/user.entity';
 import { AuthService } from './auth.service';
+import { ChangePasswordDto } from './dto/change-password.dto';
 import { ForgetPasswordDto } from './dto/forget-password.dto';
 import { InitiateEmailVerificationDto } from './dto/initiate-email-verification.dto';
 import { LoginDto } from './dto/login.dto';
@@ -59,5 +62,14 @@ export class AuthController {
   @Post('verify-email')
   async verifyEmail(@Body() data: VerifyEmailDto) {
     return this.authService.verifyEmail(data);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('change-password')
+  async changePassword(
+    @Body() data: ChangePasswordDto,
+    @UserData() user: UserEntity,
+  ) {
+    return this.authService.changePassword(data, user);
   }
 }

@@ -53,6 +53,12 @@ export class Device {
   approvedAt: Date;
 
   @Prop({ required: false })
+  approvalRequestedAt: Date;
+
+  @Prop({ required: false })
+  lastSeenAt: Date;
+
+  @Prop({ required: false })
   name: string;
 
   @Prop({ required: false })
@@ -60,6 +66,15 @@ export class Device {
 
   @Prop({ required: false })
   vehicleNumber: string;
+
+  @Prop({ required: false })
+  driverName: string;
+
+  @Prop({ required: false })
+  driverContact: string;
+
+  @Prop({ required: false })
+  driverOtherDetails: string;
 }
 
 export const DeviceSchema = SchemaFactory.createForClass(Device);

@@ -9,10 +9,11 @@ import {
 import { FilterQuery } from 'mongoose';
 
 import { ApiResponse, ApiSuccessResponse } from 'src/common/app.response';
-import { DevicePoolStatus } from 'src/config';
+import { DeviceAssignStatus, DevicePoolStatus } from 'src/config';
 import { DevicePoolRepoService } from 'src/modules/database/repositories/DevicePoolRepo.service';
 import { DeviceRepoService } from 'src/modules/database/repositories/DeviceRepo.service';
 import { DevicePoolDocument } from 'src/modules/database/schemas/device-pool.schema';
+import { DeleteDevicePoolDto } from '../dto/delete-device-pool.dto';
 import { DevicePoolMarkAsConfiguredDto } from '../dto/device-pool.mark.configured.dto';
 import { FetchDevicePoolDto } from '../dto/fetch-device-pool.dto';
 import { DevicePoolEntity } from '../entities/device-pool.entity';
@@ -104,7 +105,7 @@ export class DevicePoolService {
       const paginatedResponse = await this.devicePoolRepoService.paginate(
         query,
         null,
-        {},
+        { sort: '-createdAt' },
         filter.page,
         filter.perPage,
       );
@@ -122,6 +123,46 @@ export class DevicePoolService {
       }
       throw new HttpException(
         'Unable to fetch device pool',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+  }
+
+  public async delete({
+    serial,
+    id,
+  }: DeleteDevicePoolDto): Promise<ApiResponse> {
+    try {
+      const devicePoolObj = serial
+        ? await this.devicePoolRepoService.findBySerial(serial)
+        : await this.devicePoolRepoService.findOne({ _id: id });
+      if (!devicePoolObj) {
+        throw new HttpException('Invalid request', HttpStatus.NOT_FOUND);
+      }
+      const deviceObj = await this.deviceRepoService.findBySerial(
+        devicePoolObj.serial,
+      );
+      if (
+        deviceObj &&
+        deviceObj.assignStatus !== DeviceAssignStatus.NOT_ASSIGNED
+      ) {
+        throw new HttpException(
+          'Invalid request, device already assigned/pending request',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      await this.devicePoolRepoService.delete({ _id: devicePoolObj._id });
+      if (deviceObj && deviceObj._id) {
+        await this.deviceRepoService.delete({ _id: deviceObj._id });
+      }
+      return ApiSuccessResponse({}, 'Device deleted', HttpStatus.OK);
+    } catch (error) {
+      this.logger.error(`Unable to delete device from pool`, error);
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException(
+        'Unable to delete device from pool',
         HttpStatus.NOT_FOUND,
       );
     }

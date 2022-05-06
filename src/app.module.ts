@@ -19,6 +19,7 @@ import { RolesGuard } from './modules/auth/guards/user-role.guard';
 import { BullModule } from '@nestjs/bull';
 import { CoreModule } from './modules/core/core.module';
 import { DeviceModule } from './modules/device/device.module';
+import { ReportModule } from './modules/report/report.module';
 
 @Module({
   imports: [
@@ -96,6 +97,7 @@ import { DeviceModule } from './modules/device/device.module';
     AuthModule,
     UserModule,
     DeviceModule,
+    ReportModule,
   ],
   providers: [
     Logger,

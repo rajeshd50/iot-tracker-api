@@ -12,7 +12,7 @@ import { Queue } from 'bull';
 import { FilterQuery, AnyKeys, Types } from 'mongoose';
 import { ApiResponse, ApiSuccessResponse } from 'src/common/app.response';
 import { QUEUE_CONSTANTS, ROLE } from 'src/config';
-import { createPasswordHash } from '../auth/auth.util';
+import { comparePassword, createPasswordHash } from '../auth/auth.util';
 import { UserRepoService } from '../database/repositories/UserRepo.service';
 
 import { UserDocument } from '../database/schemas/user.schema';
@@ -20,6 +20,8 @@ import { UpdateUserDto } from './dto/user.update.dto';
 import { UsersListResultEntity } from './entities/user-list.entity';
 import { UserEntity } from './entities/user.entity';
 import { ResetPasswordDto } from '../auth/dto/reset-password.dto';
+import { FetchUserDto } from './dto/user-fetch.dto';
+import { ChangePasswordDto } from '../auth/dto/change-password.dto';
 
 @Injectable()
 export class UserService {
@@ -80,23 +82,37 @@ export class UserService {
     }
   }
 
-  public async getAllUsers(user: UserEntity): Promise<ApiResponse> {
+  public async getAllUsers(
+    filter: FetchUserDto,
+    user: UserEntity,
+  ): Promise<ApiResponse> {
     try {
-      const users = await this.userRepoService.findAll(
-        {
-          _id: {
-            $ne: new Types.ObjectId(String(user._id)),
-          },
-          role: ROLE.USER,
+      const query: FilterQuery<UserDocument> = {
+        _id: {
+          $ne: new Types.ObjectId(String(user._id)),
         },
+        role: ROLE.USER,
+      };
+      if (filter.searchText) {
+        query.$or = [
+          { firstName: new RegExp(filter.searchText, 'i') },
+          { lastName: new RegExp(filter.searchText, 'i') },
+          { email: new RegExp(filter.searchText, 'i') },
+        ];
+      }
+      const result = await this.userRepoService.paginate(
+        query,
         null,
         {
           lean: true,
         },
+        filter.page,
+        filter.perPage,
       );
       return ApiSuccessResponse(
         new UsersListResultEntity({
-          users: users.map((userItem) => new UserEntity(userItem)),
+          ...result,
+          items: result.items.map((u) => new UserEntity(u)),
         }),
         'Users list',
       );
@@ -265,6 +281,45 @@ export class UserService {
       return ApiSuccessResponse(new UserEntity(userUpdated), 'Email verified');
     } catch (error) {
       this.logger.error(`Error while verifying user email`, error);
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException('Invalid request', HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  public async changePassword(
+    data: ChangePasswordDto,
+    userEntity: UserEntity,
+  ): Promise<ApiResponse> {
+    try {
+      const user = await this.userRepoService.findByEmail(userEntity.email);
+      if (!user) {
+        throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+      }
+      const isPasswordMatch = await comparePassword(
+        user.password,
+        data.oldPassword,
+      );
+      if (!isPasswordMatch) {
+        throw new HttpException(
+          'Current password is invalid',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      const password = await createPasswordHash(data.newPassword);
+      const userUpdated = await this.userRepoService.findByIdAndUpdate(
+        user._id,
+        {
+          password,
+        },
+      );
+      return ApiSuccessResponse(
+        new UserEntity(userUpdated),
+        'Password changed',
+      );
+    } catch (error) {
+      this.logger.error(`Error while changing user password`, error);
       if (error instanceof HttpException) {
         throw error;
       }

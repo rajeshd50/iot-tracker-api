@@ -4,8 +4,6 @@ import { DeviceEntity } from './device.entity';
 class DeviceCollection extends Array<DeviceEntity> {}
 
 export class DeviceListEntity {
-  food: string;
-
   @Type(() => DeviceEntity)
   @Transform((param) =>
     param.value.map((dpEntity) => new DeviceEntity(dpEntity)),

@@ -36,6 +36,11 @@ export class DeviceEntity {
   approvedAt: Date;
   createdAt: Date;
   updatedAt?: Date;
+  approvalRequestedAt?: Date;
+  lastSeenAt?: Date;
+  driverName?: string;
+  driverContact?: string;
+  driverOtherDetails?: string;
 
   constructor(partial: Partial<DeviceEntity>) {
     Object.assign(this, partial);

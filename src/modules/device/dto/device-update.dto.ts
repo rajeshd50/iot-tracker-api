@@ -12,6 +12,18 @@ export class DeviceGeneralUpdateDto {
   @IsString()
   @IsOptional()
   vehicleNumber: string;
+
+  @IsString()
+  @IsOptional()
+  driverName: string;
+
+  @IsString()
+  @IsOptional()
+  driverContact: string;
+
+  @IsString()
+  @IsOptional()
+  driverOtherDetails: string;
 }
 
 export class DeviceUpdateDto extends DeviceGeneralUpdateDto {

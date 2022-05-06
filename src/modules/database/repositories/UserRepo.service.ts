@@ -11,7 +11,7 @@ import {
 import { Cache } from 'cache-manager';
 
 import { User, UserDocument } from '../schemas/user.schema';
-import { CACHE_CONSTANTS } from 'src/config';
+import { CACHE_CONSTANTS, DEFAULT_PER_PAGE } from 'src/config';
 
 @Injectable()
 export class UserRepoService {
@@ -86,6 +86,33 @@ export class UserRepoService {
       return this.userModel.find(query, projection, options);
     } catch (error) {
       this.logger.error(`Error while finding user`, error);
+      throw error;
+    }
+  }
+
+  public async paginate(
+    query: FilterQuery<UserDocument>,
+    projection: ProjectionType<UserDocument> = null,
+    options: QueryOptions = {},
+    page = 1,
+    limit = DEFAULT_PER_PAGE,
+  ) {
+    try {
+      const skip = (page - 1) * limit;
+      const total = await this.userModel.countDocuments(query);
+      const users = await this.userModel.find(query, projection, {
+        ...options,
+        skip,
+        limit,
+      });
+      return {
+        total,
+        page,
+        perPage: limit,
+        items: users,
+      };
+    } catch (error) {
+      this.logger.error(`Error while finding users`, error);
       throw error;
     }
   }

@@ -7,12 +7,24 @@ import {
   Min,
   IsEnum,
 } from 'class-validator';
+import { OrderByDirection } from 'src/common/api.common.interfaces';
 import { DeviceAssignStatus, DeviceLiveStatus, DeviceStatus } from 'src/config';
+
+export enum DeviceOrderBy {
+  CREATED_AT = 'createdAt',
+  APPROVED_AT = 'approvedAt',
+  APPROVAL_REQUESTED_AT = 'approvalRequestedAt',
+  LAST_SEEN_AT = 'lastSeenAt',
+}
 
 export class FetchDeviceDto {
   @IsString()
   @IsOptional()
   serial: string;
+
+  @IsString()
+  @IsOptional()
+  searchText: string;
 
   @IsOptional()
   @Type(() => String)
@@ -32,6 +44,16 @@ export class FetchDeviceDto {
   @IsOptional()
   @IsString()
   user: string;
+
+  @IsOptional()
+  @Type(() => String)
+  @IsEnum(DeviceOrderBy)
+  orderBy: DeviceOrderBy;
+
+  @IsOptional()
+  @Type(() => String)
+  @IsEnum(OrderByDirection)
+  orderByDirection: OrderByDirection;
 
   @IsNumber()
   @Min(1)

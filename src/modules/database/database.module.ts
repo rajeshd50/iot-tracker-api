@@ -4,6 +4,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import * as redisStore from 'cache-manager-redis-store';
 
 import { DEFAULT_CACHE_TTL, ENV_CONSTANTS, STRING_CONSTANTS } from 'src/config';
+import { DashboardReportRepoService } from './repositories/DashboardReportRepo.service';
 import { DevicePoolRepoService } from './repositories/DevicePoolRepo.service';
 import { DeviceRepoService } from './repositories/DeviceRepo.service';
 import { UserRepoService } from './repositories/UserRepo.service';
@@ -37,12 +38,18 @@ import { User, UserSchema } from './schemas/user.schema';
       STRING_CONSTANTS.MAIN_DOC_DB_CONNECTION_NAME,
     ),
   ],
-  providers: [UserRepoService, DevicePoolRepoService, DeviceRepoService],
+  providers: [
+    UserRepoService,
+    DevicePoolRepoService,
+    DeviceRepoService,
+    DashboardReportRepoService,
+  ],
   exports: [
     MongooseModule,
     UserRepoService,
     DevicePoolRepoService,
     DeviceRepoService,
+    DashboardReportRepoService,
   ],
 })
 export class DatabaseModule {}
