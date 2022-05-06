@@ -203,11 +203,11 @@ export class DeviceRepoService {
     try {
       await this.cacheManager.set(
         CACHE_CONSTANTS.DEVICE.BY_SERIAL(deviceData.serial),
-        deviceData,
+        deviceData.toObject(),
       );
       await this.cacheManager.set(
         CACHE_CONSTANTS.DEVICE.BY_ID(deviceData._id),
-        deviceData,
+        deviceData.toObject(),
       );
     } catch (error) {
       this.logger.error(`Error while setting device cache`, error);

@@ -198,7 +198,7 @@ export class DeviceService {
       await this.deviceRepoService.findByIdAndUpdate(device._id, updateObj);
       const updatedDevice = await this.deviceRepoService.findById(device._id);
       return ApiSuccessResponse(
-        new DeviceEntity(updatedDevice.toObject()),
+        new DeviceEntity(updatedDevice),
         `Assignment ${data.isApproved ? 'approved' : 'rejected'}`,
       );
     } catch (error) {
