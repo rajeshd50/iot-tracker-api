@@ -1,6 +1,10 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { ApiResponse, ApiSuccessResponse } from 'src/common/app.response';
+import {
+  ApiErrorResponse,
+  ApiResponse,
+  ApiSuccessResponse,
+} from 'src/common/app.response';
 import { UserEntity } from '../user/entities/user.entity';
 
 import { UserService } from '../user/user.service';
@@ -50,6 +54,20 @@ export class AuthService {
       const user = await this.userService.findOne({
         email: userFromReq.email,
       });
+      if (!user) {
+        return ApiErrorResponse(
+          {},
+          'Invalid account, please hek email',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      if (!user.isActive) {
+        return ApiErrorResponse(
+          {},
+          'Account has been disabled, please contact admin',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
       if (user) {
         const { password, ...result } = user.toObject();
         payload.sub = result;

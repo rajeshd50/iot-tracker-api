@@ -1,3 +1,4 @@
+import { InjectQueue } from '@nestjs/bull';
 import {
   forwardRef,
   HttpException,
@@ -6,12 +7,13 @@ import {
   Injectable,
   Logger,
 } from '@nestjs/common';
+import { Queue } from 'bull';
 
 import { FilterQuery, AnyKeys } from 'mongoose';
 import { OrderByDirection } from 'src/common/api.common.interfaces';
 
 import { ApiResponse, ApiSuccessResponse } from 'src/common/app.response';
-import { DeviceAssignStatus, DeviceStatus } from 'src/config';
+import { DeviceAssignStatus, DeviceStatus, QUEUE_CONSTANTS } from 'src/config';
 import { DevicePoolRepoService } from 'src/modules/database/repositories/DevicePoolRepo.service';
 import { DeviceRepoService } from 'src/modules/database/repositories/DeviceRepo.service';
 import { DeviceDocument } from 'src/modules/database/schemas/device.schema';
@@ -35,6 +37,8 @@ export class DeviceService {
     private deviceRepoService: DeviceRepoService,
     @Inject(forwardRef(() => DevicePoolRepoService))
     private devicePoolRepoService: DevicePoolRepoService,
+    @InjectQueue(QUEUE_CONSTANTS.DEVICE_SERVICE_QUEUE.NAME)
+    private deviceJobQueue: Queue,
   ) {}
 
   public async requestAssignment(
@@ -61,7 +65,6 @@ export class DeviceService {
           HttpStatus.BAD_REQUEST,
         );
       }
-      // todo send email to admin new request received
       await this.deviceRepoService.findByIdAndUpdate(device._id, {
         assignStatus: DeviceAssignStatus.PENDING_APPROVAL,
         user: userEntity.id,
@@ -73,10 +76,12 @@ export class DeviceService {
       const updatedDevice = await this.deviceRepoService.findBySerial(
         data.serial,
         null,
+        {},
+      );
+      await this.deviceJobQueue.add(
+        QUEUE_CONSTANTS.DEVICE_SERVICE_QUEUE.TASKS.APPROVAL_REQUEST_EMAIL,
         {
-          populate: {
-            path: 'user',
-          },
+          deviceData: new DeviceEntity(updatedDevice),
         },
       );
       return ApiSuccessResponse(
@@ -179,7 +184,6 @@ export class DeviceService {
           HttpStatus.BAD_REQUEST,
         );
       }
-      // todo send email to user request approve/rejected
       const updateObj: AnyKeys<DeviceDocument> = {};
       if (data.isApproved) {
         updateObj.assignStatus = DeviceAssignStatus.ASSIGNED;
@@ -197,6 +201,24 @@ export class DeviceService {
       }
       await this.deviceRepoService.findByIdAndUpdate(device._id, updateObj);
       const updatedDevice = await this.deviceRepoService.findById(device._id);
+
+      if (data.isApproved) {
+        await this.deviceJobQueue.add(
+          QUEUE_CONSTANTS.DEVICE_SERVICE_QUEUE.TASKS.APPROVAL_ACCEPTED_EMAIL,
+          {
+            deviceData: new DeviceEntity(updatedDevice),
+          },
+        );
+      } else {
+        await this.deviceJobQueue.add(
+          QUEUE_CONSTANTS.DEVICE_SERVICE_QUEUE.TASKS.APPROVAL_REJECTED_EMAIL,
+          {
+            deviceData: new DeviceEntity(updatedDevice),
+            userData: new UserEntity(device.user),
+          },
+        );
+      }
+
       return ApiSuccessResponse(
         new DeviceEntity(updatedDevice),
         `Assignment ${data.isApproved ? 'approved' : 'rejected'}`,
@@ -236,7 +258,7 @@ export class DeviceService {
       await this.deviceRepoService.findByIdAndUpdate(device._id, updateObj);
       const updatedDevice = await this.deviceRepoService.findById(device._id);
       return ApiSuccessResponse(
-        new DeviceEntity(updatedDevice.toObject()),
+        new DeviceEntity(updatedDevice),
         `Device marked as ${
           data.status === DeviceStatus.ACTIVE ? 'active' : 'inactive'
         }`,

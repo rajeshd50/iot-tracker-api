@@ -4,12 +4,17 @@ import {
   IsNotEmpty,
   IsNumber,
   Min,
+  IsBoolean,
 } from 'class-validator';
 
 export class FetchUserDto {
   @IsString()
   @IsOptional()
   searchText: string;
+
+  @IsOptional()
+  @IsBoolean()
+  isActive: boolean;
 
   @IsNumber()
   @Min(1)

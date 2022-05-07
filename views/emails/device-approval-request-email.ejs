@@ -197,66 +197,43 @@
                   </tr>
 
                   <tr>
-                    <td align="center"
-                      style="font-size:0px;padding:10px 25px;padding-bottom:40px;word-break:break-word;">
-
-                      <div
-                        style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:32px;font-weight:bold;line-height:1;text-align:center;color:#555;">
-                        Please confirm your email
-                      </div>
-
-                    </td>
-                  </tr>
-
-                  <tr>
-                    <td align="center" style="font-size:0px;padding:10px 25px;padding-bottom:0;word-break:break-word;">
-
-                      <div
-                        style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:16px;line-height:22px;text-align:center;color:#555;">
-                        Yes, we know.
-                      </div>
-
-                    </td>
-                  </tr>
-
-                  <tr>
                     <td align="center" style="font-size:0px;padding:10px 25px;word-break:break-word;">
 
                       <div
-                        style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:16px;line-height:22px;text-align:center;color:#555;">
-                        An email to confirm an email. 🤪
+                        style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:24px;font-weight:bold;line-height:22px;text-align:center;color:#525252;">
+                        New device approval requested
                       </div>
 
                     </td>
                   </tr>
 
                   <tr>
-                    <td align="center"
-                      style="font-size:0px;padding:10px 25px;padding-bottom:20px;word-break:break-word;">
+                    <td align="left" style="font-size:0px;padding:10px 25px;word-break:break-word;">
 
                       <div
-                        style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:16px;line-height:22px;text-align:center;color:#555;">
-                        Please validate your email address in order to get started using Vehicle Tracker.
+                        style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:14px;line-height:22px;text-align:left;color:#525252;">
+                        <p>Hi,</p>
+
+                        <p>A new device has been added, and approval request has been made. Please take action if not taken already.</p>
                       </div>
 
                     </td>
                   </tr>
 
                   <tr>
-                    <td align="center"
-                      style="font-size:0px;padding:10px 25px;padding-top:30px;padding-bottom:40px;word-break:break-word;">
+                    <td align="left" style="font-size:0px;padding:10px 25px;word-break:break-word;">
 
-                      <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation"
-                        style="border-collapse:separate;line-height:100%;">
+                      <table 0="[object Object]" 1="[object Object]" 2="[object Object]" border="0"
+                        style="cellspacing:0;color:#000;font-family:'Helvetica Neue',Arial,sans-serif;font-size:13px;line-height:22px;table-layout:auto;width:100%;">
+                        <tr style="border-bottom:1px solid #ecedee;text-align:left;">
+                          <th style="padding: 0 15px 10px 0;">Device Serial</th>
+                          <th style="padding: 0 15px;">User Email</th>
+                          <th style="padding: 0 0 0 15px;">User Name</th>
+                        </tr>
                         <tr>
-                          <td align="center" bgcolor="#2F67F6" role="presentation"
-                            style="border:none;border-radius:3px;color:#ffffff;cursor:auto;padding:15px 25px;"
-                            valign="middle">
-                            <a
-                              style="background:#2F67F6;color:#ffffff;font-family:'Helvetica Neue',Arial,sans-serif;font-size:15px;font-weight:normal;line-height:120%;Margin:0;text-decoration:none;text-transform:none;" href="<%= verificationLink %>" target="__blank">
-                              Confirm Your Email
-                            </a>
-                          </td>
+                          <td style="padding: 5px 15px 5px 0;"><%= serial %></td>
+                          <td style="padding: 0 15px;"><%= userEmail %></td>
+                          <td style="padding: 0 0 0 15px;"><%= userName %></td>
                         </tr>
                       </table>
 
@@ -264,11 +241,33 @@
                   </tr>
 
                   <tr>
-                    <td align="center" style="font-size:0px;padding:10px 25px;padding-bottom:0;word-break:break-word;">
+                    <td align="left" style="font-size:0px;padding:10px 25px;word-break:break-word;">
 
                       <div
-                        style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:16px;line-height:22px;text-align:center;color:#555;">
-                        Or verify using this link:
+                        style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;line-height:16px;text-align:left;color:#a2a2a2;">
+                        <p>As an admin, you can either accept or reject the approval request.</p>
+                      </div>
+
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td align="center" style="font-size:0px;padding:10px 25px;word-break:break-word;">
+
+                      <div
+                        style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:16px;font-weight:bold;line-height:20px;text-align:center;color:#525252;">
+                        Instruction to accept/reject the request
+                      </div>
+
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td align="left" style="font-size:0px;padding:10px 25px;word-break:break-word;">
+
+                      <div
+                        style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:14px;line-height:22px;text-align:left;color:#525252;">
+                        <p>Login to your account, goto "Device > Recent Purchases", there will be the request (with other if any) then click on the action button at the right end of the request. Click the "green tick" icon to accept, or to reject click the "three dot" icon, which will open menu to reject the request.</p>
                       </div>
 
                     </td>
@@ -276,36 +275,22 @@
 
                   <tr>
                     <td align="center"
-                      style="font-size:0px;padding:10px 25px;padding-bottom:40px;word-break:break-word;">
+                      style="font-size:0px;padding:10px 25px;padding-top:30px;padding-bottom:50px;word-break:break-word;">
 
-                      <div
-                        style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:16px;line-height:22px;text-align:center;color:#555;">
-                        <a href="<%= verificationLink %>" target="_blank" referrerpolicy="noopener noreferrer"
-                          style="color:#2F67F6"><%= verificationLink %></a>
-                      </div>
-
-                    </td>
-                  </tr>
-
-                  <tr>
-                    <td align="center" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-
-                      <div
-                        style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:26px;font-weight:bold;line-height:1;text-align:center;color:#555;">
-                        Need Help?
-                      </div>
-
-                    </td>
-                  </tr>
-
-                  <tr>
-                    <td align="center" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-
-                      <div
-                        style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:14px;line-height:22px;text-align:center;color:#555;">
-                        Please send and feedback or bug info<br> to <a href="mailto:info@example.com"
-                          style="color:#2F67F6">info@example.com</a>
-                      </div>
+                      <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation"
+                        style="border-collapse:separate;line-height:100%;">
+                        <tr>
+                          <td align="center" bgcolor="#2F67F6" role="presentation"
+                            style="border:none;border-radius:3px;color:#ffffff;cursor:auto;padding:15px 25px;"
+                            valign="middle">
+                            <p
+                              style="background:#2F67F6;color:#ffffff;font-family:'Helvetica Neue',Arial,sans-serif;font-size:15px;font-weight:normal;line-height:120%;Margin:0;text-decoration:none;text-transform:none;">
+                              <a href="<%= recentPurchaseUrl %>" style="color:#fff; text-decoration:none" target="_blank" referrerpolicy="noopener noreferrer">
+                                Login to your account</a>
+                            </p>
+                          </td>
+                        </tr>
+                      </table>
 
                     </td>
                   </tr>
@@ -380,7 +365,7 @@
                           </tr>
 
                           <tr>
-                            <td align="center" style="font-size:0px;padding:10px;word-break:break-word;">
+                            <td align="center" style="font-size:0px;padding:10;word-break:break-word;">
 
                               <div
                                 style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;font-weight:300;line-height:1;text-align:center;color:#575757;">

@@ -13,4 +13,8 @@ export const CACHE_CONSTANTS = {
       `device_by_serial_${serial.toLocaleUpperCase()}`,
     BY_ID: (id: string) => `device_by_id_${id}`,
   },
+  SITE_CONFIG: {
+    BY_KEY: (key: string) => `site_config_by_key_${key.toLocaleLowerCase()}`,
+    BY_ID: (id: string) => `site_config_by_id_${id}`,
+  },
 };

@@ -68,4 +68,27 @@ export class UserTaskProcessor {
       this.logger.log(`Error while sending email verify email`);
     }
   }
+
+  @Process(QUEUE_CONSTANTS.USER_SERVICE_QUEUE.TASKS.SEND_WELCOME_EMAIL)
+  async sendWelcomeEmail(job: Job) {
+    try {
+      const userData: UserDocument = job.data.userData;
+      await this.mailerService.sendMail({
+        to: userData.email,
+        from: this.configService.get<string>(ENV_CONSTANTS.EMAIL_FROM),
+        subject: `Vehicle Tracker: Welcome to your new account`,
+        context: {
+          name: userData.firstName,
+          subject: `Vehicle Tracker: Welcome to your new account`,
+          loginLink: `${this.configService.get<string>(
+            ENV_CONSTANTS.UI_URL,
+          )}${this.configService.get<string>(ENV_CONSTANTS.LOGIN_LINK)}`,
+        },
+        template: 'user-welcome-email',
+      });
+    } catch (error) {
+      console.log(error);
+      this.logger.log(`Error while sending welcome email`);
+    }
+  }
 }

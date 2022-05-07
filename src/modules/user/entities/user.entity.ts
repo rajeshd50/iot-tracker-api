@@ -25,9 +25,7 @@ export class UserEntity {
   lastName: string;
   role: ROLE;
 
-  @Exclude()
   createdAt: string;
-  @Exclude()
   updatedAt: string;
 
   @Exclude()

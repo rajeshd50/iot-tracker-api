@@ -40,12 +40,15 @@ export class DeviceRepoService {
     serial: string,
     projection: ProjectionType<DeviceDocument> = null,
     options: QueryOptions = {},
+    refreshCache = false,
   ) {
     try {
       let deviceData: DeviceDocument = null;
-      deviceData = await this.cacheManager.get(
-        CACHE_CONSTANTS.DEVICE.BY_SERIAL(serial.toLocaleUpperCase()),
-      );
+      if (!refreshCache) {
+        deviceData = await this.cacheManager.get(
+          CACHE_CONSTANTS.DEVICE.BY_SERIAL(serial.toLocaleUpperCase()),
+        );
+      }
       if (!deviceData) {
         deviceData = await this.deviceModel
           .findOne(
@@ -53,13 +56,13 @@ export class DeviceRepoService {
               serial: serial.toLocaleUpperCase(),
             },
             projection,
-            options,
+            { ...options, lean: true },
           )
           .populate('user');
         if (deviceData) {
           await this.cacheManager.set(
             CACHE_CONSTANTS.DEVICE.BY_SERIAL(serial.toLocaleUpperCase()),
-            deviceData.toObject(),
+            deviceData,
           );
         }
       }
@@ -74,12 +77,15 @@ export class DeviceRepoService {
     id: string | object,
     projection: ProjectionType<DeviceDocument> = null,
     options: QueryOptions = {},
+    refreshCache = false,
   ) {
     try {
       let deviceData: DeviceDocument = null;
-      deviceData = await this.cacheManager.get(
-        CACHE_CONSTANTS.DEVICE.BY_ID(id.toString()),
-      );
+      if (!refreshCache) {
+        deviceData = await this.cacheManager.get(
+          CACHE_CONSTANTS.DEVICE.BY_ID(id.toString()),
+        );
+      }
       if (!deviceData) {
         deviceData = await this.deviceModel
           .findById(id, projection, options)
@@ -169,7 +175,7 @@ export class DeviceRepoService {
     updateData: AnyKeys<DeviceDocument>,
   ) {
     try {
-      const updatedDeviceData = await this.deviceModel.findByIdAndUpdate(
+      await this.deviceModel.findByIdAndUpdate(
         id,
         {
           ...updateData,
@@ -178,6 +184,7 @@ export class DeviceRepoService {
           new: true,
         },
       );
+      const updatedDeviceData = await this.findById(id, null, {}, true);
       await this.setDeviceCache(updatedDeviceData);
       return updatedDeviceData;
     } catch (error) {
@@ -203,11 +210,11 @@ export class DeviceRepoService {
     try {
       await this.cacheManager.set(
         CACHE_CONSTANTS.DEVICE.BY_SERIAL(deviceData.serial),
-        deviceData.toObject(),
+        deviceData,
       );
       await this.cacheManager.set(
         CACHE_CONSTANTS.DEVICE.BY_ID(deviceData._id),
-        deviceData.toObject(),
+        deviceData,
       );
     } catch (error) {
       this.logger.error(`Error while setting device cache`, error);

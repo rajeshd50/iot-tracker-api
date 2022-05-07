@@ -7,9 +7,11 @@ import { DEFAULT_CACHE_TTL, ENV_CONSTANTS, STRING_CONSTANTS } from 'src/config';
 import { DashboardReportRepoService } from './repositories/DashboardReportRepo.service';
 import { DevicePoolRepoService } from './repositories/DevicePoolRepo.service';
 import { DeviceRepoService } from './repositories/DeviceRepo.service';
+import { SiteConfigRepoService } from './repositories/SiteConfigRepo.service';
 import { UserRepoService } from './repositories/UserRepo.service';
 import { DevicePool, DevicePoolSchema } from './schemas/device-pool.schema';
 import { Device, DeviceSchema } from './schemas/device.schema';
+import { SiteConfig, SiteConfigSchema } from './schemas/site-config.schema';
 import { User, UserSchema } from './schemas/user.schema';
 
 @Global()
@@ -34,6 +36,7 @@ import { User, UserSchema } from './schemas/user.schema';
         { name: User.name, schema: UserSchema },
         { name: DevicePool.name, schema: DevicePoolSchema },
         { name: Device.name, schema: DeviceSchema },
+        { name: SiteConfig.name, schema: SiteConfigSchema },
       ],
       STRING_CONSTANTS.MAIN_DOC_DB_CONNECTION_NAME,
     ),
@@ -43,6 +46,7 @@ import { User, UserSchema } from './schemas/user.schema';
     DevicePoolRepoService,
     DeviceRepoService,
     DashboardReportRepoService,
+    SiteConfigRepoService,
   ],
   exports: [
     MongooseModule,
@@ -50,6 +54,7 @@ import { User, UserSchema } from './schemas/user.schema';
     DevicePoolRepoService,
     DeviceRepoService,
     DashboardReportRepoService,
+    SiteConfigRepoService,
   ],
 })
 export class DatabaseModule {}

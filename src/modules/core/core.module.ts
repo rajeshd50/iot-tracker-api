@@ -8,6 +8,9 @@ import { QUEUE_CONSTANTS } from 'src/config';
     BullModule.registerQueue({
       name: QUEUE_CONSTANTS.USER_SERVICE_QUEUE.NAME,
     }),
+    BullModule.registerQueue({
+      name: QUEUE_CONSTANTS.DEVICE_SERVICE_QUEUE.NAME,
+    }),
   ],
   exports: [BullModule],
 })
