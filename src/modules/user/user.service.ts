@@ -63,7 +63,7 @@ export class UserService {
       const userCreated = await this.userRepoService.create({
         ...userData,
         password,
-        role: ROLE.USER,
+        role: userData.role ? userData.role : ROLE.USER,
       });
       await this.userJobQueue.add(
         QUEUE_CONSTANTS.USER_SERVICE_QUEUE.TASKS.SEND_WELCOME_EMAIL,
@@ -260,7 +260,7 @@ export class UserService {
       await this.userJobQueue.add(
         QUEUE_CONSTANTS.USER_SERVICE_QUEUE.TASKS.SEND_EMAIL_VERIFY_EMAIL,
         {
-          userData: userUpdated.toObject(),
+          userData: userUpdated,
         },
       );
       return ApiSuccessResponse(

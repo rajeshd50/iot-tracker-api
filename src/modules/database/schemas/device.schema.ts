@@ -12,6 +12,9 @@ export class Device {
   @Prop({ required: true, index: true, unique: true, uppercase: true })
   serial: string;
 
+  @Prop({ required: false, default: 'v1.0.0' })
+  firmwareVersion: string;
+
   @Prop({
     required: true,
     enum: DeviceLiveStatus,

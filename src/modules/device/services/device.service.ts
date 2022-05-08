@@ -18,6 +18,7 @@ import { DevicePoolRepoService } from 'src/modules/database/repositories/DeviceP
 import { DeviceRepoService } from 'src/modules/database/repositories/DeviceRepo.service';
 import { DeviceDocument } from 'src/modules/database/schemas/device.schema';
 import { UserEntity } from 'src/modules/user/entities/user.entity';
+import { AssignDeviceDto } from '../dto/assign-device.dto';
 import { DeleteDeviceDto } from '../dto/delete-device.dto';
 import { DeviceRequestAssignmentDto } from '../dto/device-assign-request.dto';
 import { DeviceDetailsDto } from '../dto/device-details.dto';
@@ -280,7 +281,7 @@ export class DeviceService {
     userEntity: UserEntity,
   ): Promise<ApiResponse> {
     try {
-      const device = await this.deviceRepoService.findBySerial(data.id);
+      const device = await this.deviceRepoService.findById(data.id);
       if (!device) {
         throw new HttpException('Invalid device', HttpStatus.NOT_FOUND);
       }
@@ -312,7 +313,7 @@ export class DeviceService {
       await this.deviceRepoService.findByIdAndUpdate(device._id, updateObj);
       const updatedDevice = await this.deviceRepoService.findById(device._id);
       return ApiSuccessResponse(
-        new DeviceEntity(updatedDevice.toObject()),
+        new DeviceEntity(updatedDevice),
         'Device updated',
       );
     } catch (error) {
@@ -383,6 +384,61 @@ export class DeviceService {
         throw error;
       }
       throw new HttpException('Unable to delete device', HttpStatus.NOT_FOUND);
+    }
+  }
+
+  public async assignDevice(
+    data: AssignDeviceDto,
+    userEntity: UserEntity,
+  ): Promise<ApiResponse> {
+    try {
+      const device = await this.deviceRepoService.findById(data.deviceId);
+      if (!device) {
+        throw new HttpException('Invalid device', HttpStatus.NOT_FOUND);
+      }
+      if (device.assignStatus === DeviceAssignStatus.ASSIGNED) {
+        throw new HttpException(
+          'Approval already assigned to a user',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      if (device.assignStatus === DeviceAssignStatus.PENDING_APPROVAL) {
+        throw new HttpException(
+          'Some user already applied for approval for this device',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      const updateObj: AnyKeys<DeviceDocument> = {};
+      updateObj.assignStatus = DeviceAssignStatus.ASSIGNED;
+      updateObj.approvedBy = userEntity.id;
+      updateObj.approvedAt = new Date();
+      updateObj.status = DeviceStatus.ACTIVE;
+      updateObj.approvalRequestedAt = new Date();
+      updateObj.user = data.userId;
+
+      await this.deviceRepoService.findByIdAndUpdate(device._id, updateObj);
+      const updatedDevice = await this.deviceRepoService.findById(device._id);
+
+      await this.deviceJobQueue.add(
+        QUEUE_CONSTANTS.DEVICE_SERVICE_QUEUE.TASKS.DEVICE_ADDED_TO_ACCOUNT,
+        {
+          deviceData: new DeviceEntity(updatedDevice),
+        },
+      );
+
+      return ApiSuccessResponse(
+        new DeviceEntity(updatedDevice),
+        `Device assigned to user`,
+      );
+    } catch (error) {
+      this.logger.error(`Unable to assign device to user`, error);
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException(
+        'Unable to assign device to user',
+        HttpStatus.BAD_REQUEST,
+      );
     }
   }
 }

@@ -99,4 +99,30 @@ export class DeviceTaskProcessor {
       this.logger.log(`Error while sending device-approval-approved email`);
     }
   }
+
+  @Process(QUEUE_CONSTANTS.DEVICE_SERVICE_QUEUE.TASKS.DEVICE_ADDED_TO_ACCOUNT)
+  async sendDeviceAddedToAccountEmail(job: Job) {
+    try {
+      const deviceData: DeviceEntity = job.data.deviceData;
+      await this.mailerService.sendMail({
+        to: deviceData.user.email,
+        from: this.configService.get<string>(ENV_CONSTANTS.EMAIL_FROM),
+        subject: `Vehicle Tracker: new device added`,
+        context: {
+          serial: deviceData.serial,
+          subject: `Vehicle Tracker: new device added`,
+          name: deviceData.user.firstName,
+          deviceLink: `${this.configService.get<string>(
+            ENV_CONSTANTS.UI_URL,
+          )}${this.configService.get<string>(
+            ENV_CONSTANTS.DEVICE_DETAILS_URL,
+          )}`,
+        },
+        template: 'device-added-email',
+      });
+    } catch (error) {
+      console.log(error);
+      this.logger.log(`Error while sending device-added email`);
+    }
+  }
 }

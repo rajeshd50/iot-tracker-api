@@ -13,6 +13,7 @@ export const QUEUE_CONSTANTS = {
       APPROVAL_REQUEST_EMAIL: 'device_send_approval_request_email',
       APPROVAL_REJECTED_EMAIL: 'device_send_approval_rejected_email',
       APPROVAL_ACCEPTED_EMAIL: 'device_send_approval_accepted_email',
+      DEVICE_ADDED_TO_ACCOUNT: 'device_added_to_account_email',
     },
   },
 };

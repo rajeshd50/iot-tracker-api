@@ -2,6 +2,7 @@ import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
 import { ROLE } from 'src/config';
 import { Roles } from 'src/decorators/user-role.decorator';
 import { UserData } from 'src/decorators/user.decorator';
+import { AssignDeviceDto } from '../dto/assign-device.dto';
 import { DeleteDeviceDto } from '../dto/delete-device.dto';
 import { DeviceRequestAssignmentDto } from '../dto/device-assign-request.dto';
 import { DeviceDetailsDto } from '../dto/device-details.dto';
@@ -65,5 +66,12 @@ export class DeviceController {
   @Post('delete')
   async delete(@Body() data: DeleteDeviceDto) {
     return this.deviceService.delete(data);
+  }
+
+  @Roles(ROLE.ADMIN)
+  @HttpCode(HttpStatus.OK)
+  @Post('assign')
+  async assignDevice(@Body() data: AssignDeviceDto, @UserData() user) {
+    return this.deviceService.assignDevice(data, user);
   }
 }

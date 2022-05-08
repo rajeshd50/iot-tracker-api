@@ -32,6 +32,7 @@ export class DeviceEntity {
   name?: string;
   vehicleName?: string;
   vehicleNumber?: string;
+  firmwareVersion?: string;
 
   approvedAt: Date;
   createdAt: Date;
