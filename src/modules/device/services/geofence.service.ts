@@ -14,6 +14,7 @@ import { GeoFenceRepoService } from 'src/modules/database/repositories/GeoFenceR
 import { GeoFenceDocument } from 'src/modules/database/schemas/geofence.schema';
 import { UserEntity } from 'src/modules/user/entities/user.entity';
 import { AddGeoFenceDto } from '../dto/geofence/add-geo-fence.dto';
+import { ChangeGeoFenceStatusDto } from '../dto/geofence/change-geo-fence-status.dto';
 import { DeleteGeoFenceDto } from '../dto/geofence/delete-geo-fence.dto';
 import { FetchGeoFencesDto } from '../dto/geofence/fetch-geo-fence.dto';
 import { GeoFenceDetailsDto } from '../dto/geofence/geo-fence-details.dto';
@@ -281,6 +282,46 @@ export class GeoFenceService {
       }
       throw new HttpException(
         'Unable to remove geo fence from device',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+  }
+
+  public async changeFenceStatus(
+    data: ChangeGeoFenceStatusDto,
+    userEntity: UserEntity,
+  ): Promise<ApiResponse> {
+    try {
+      const fence = await this.geoFenceRepoService.findOne({
+        _id: data.id,
+        user: userEntity.id,
+      });
+      if (!fence) {
+        throw new HttpException('Invalid geo fence', HttpStatus.BAD_REQUEST);
+      }
+      if (fence.isActive === data.isActive) {
+        throw new HttpException(
+          `Geo fence is already ${data.isActive ? 'active' : 'inactive'}`,
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      const updatedFence = await this.geoFenceRepoService.findByIdAndUpdate(
+        data.id,
+        {
+          isActive: data.isActive,
+        },
+      );
+      return ApiSuccessResponse(
+        new GeoFenceEntity(updatedFence),
+        'GeoFence status changed',
+      );
+    } catch (error) {
+      this.logger.error(`Unable to change geo fence status`, error);
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException(
+        'Unable to change geo fence status',
         HttpStatus.NOT_FOUND,
       );
     }

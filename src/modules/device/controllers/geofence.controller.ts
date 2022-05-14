@@ -3,6 +3,7 @@ import { ROLE } from 'src/config';
 import { Roles } from 'src/decorators/user-role.decorator';
 import { UserData } from 'src/decorators/user.decorator';
 import { AddGeoFenceDto } from '../dto/geofence/add-geo-fence.dto';
+import { ChangeGeoFenceStatusDto } from '../dto/geofence/change-geo-fence-status.dto';
 import { DeleteGeoFenceDto } from '../dto/geofence/delete-geo-fence.dto';
 import { FetchGeoFencesDto } from '../dto/geofence/fetch-geo-fence.dto';
 import { GeoFenceDetailsDto } from '../dto/geofence/geo-fence-details.dto';
@@ -60,12 +61,22 @@ export class GeoFenceController {
   }
 
   @Roles(ROLE.USER)
-  @HttpCode(HttpStatus.CREATED)
+  @HttpCode(HttpStatus.OK)
   @Post('remove-from-device')
   async removeFenceFromDevice(
     @Body() data: UpdateGeoFenceToDeviceDto,
     @UserData() user,
   ) {
     return this.geoFenceService.removeFenceFromDevice(data, user);
+  }
+
+  @Roles(ROLE.USER)
+  @HttpCode(HttpStatus.CREATED)
+  @Post('change-status')
+  async changeFenceStatus(
+    @Body() data: ChangeGeoFenceStatusDto,
+    @UserData() user,
+  ) {
+    return this.geoFenceService.changeFenceStatus(data, user);
   }
 }
