@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { Document } from 'mongoose';
 import { DeviceLiveStatus, DeviceAssignStatus, DeviceStatus } from 'src/config';
+import { GeoFenceDocument } from './geofence.schema';
 import { UserDocument } from './user.schema';
 
 export type DeviceDocument = Device & Document;
@@ -78,6 +79,12 @@ export class Device {
 
   @Prop({ required: false })
   driverOtherDetails: string;
+
+  @Prop({
+    type: [mongoose.Schema.Types.ObjectId],
+    ref: 'GeoFence',
+  })
+  attachedGeoFences: GeoFenceDocument[];
 }
 
 export const DeviceSchema = SchemaFactory.createForClass(Device);

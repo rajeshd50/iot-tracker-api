@@ -5,13 +5,24 @@ import * as redisStore from 'cache-manager-redis-store';
 
 import { DEFAULT_CACHE_TTL, ENV_CONSTANTS, STRING_CONSTANTS } from 'src/config';
 import { DashboardReportRepoService } from './repositories/DashboardReportRepo.service';
+import { DeviceFirmwareRepoService } from './repositories/DeviceFirmwareRepo.service';
 import { DevicePoolRepoService } from './repositories/DevicePoolRepo.service';
 import { DeviceRepoService } from './repositories/DeviceRepo.service';
+import { GeoFenceRepoService } from './repositories/GeoFenceRepo.service';
 import { SiteConfigRepoService } from './repositories/SiteConfigRepo.service';
 import { UserRepoService } from './repositories/UserRepo.service';
+import {
+  DeviceFirmware,
+  DeviceFirmwareSchema,
+} from './schemas/device-firmware.schema';
 import { DevicePool, DevicePoolSchema } from './schemas/device-pool.schema';
 import { Device, DeviceSchema } from './schemas/device.schema';
+import { GeoFence, GeoFenceSchema } from './schemas/geofence.schema';
 import { SiteConfig, SiteConfigSchema } from './schemas/site-config.schema';
+import {
+  SupportTicket,
+  SupportTicketSchema,
+} from './schemas/support-ticket.schema';
 import { User, UserSchema } from './schemas/user.schema';
 
 @Global()
@@ -37,6 +48,9 @@ import { User, UserSchema } from './schemas/user.schema';
         { name: DevicePool.name, schema: DevicePoolSchema },
         { name: Device.name, schema: DeviceSchema },
         { name: SiteConfig.name, schema: SiteConfigSchema },
+        { name: GeoFence.name, schema: GeoFenceSchema },
+        { name: DeviceFirmware.name, schema: DeviceFirmwareSchema },
+        { name: SupportTicket.name, schema: SupportTicketSchema },
       ],
       STRING_CONSTANTS.MAIN_DOC_DB_CONNECTION_NAME,
     ),
@@ -47,6 +61,8 @@ import { User, UserSchema } from './schemas/user.schema';
     DeviceRepoService,
     DashboardReportRepoService,
     SiteConfigRepoService,
+    GeoFenceRepoService,
+    DeviceFirmwareRepoService,
   ],
   exports: [
     MongooseModule,
@@ -55,6 +71,8 @@ import { User, UserSchema } from './schemas/user.schema';
     DeviceRepoService,
     DashboardReportRepoService,
     SiteConfigRepoService,
+    GeoFenceRepoService,
+    DeviceFirmwareRepoService,
   ],
 })
 export class DatabaseModule {}

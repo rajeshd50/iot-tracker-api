@@ -43,6 +43,14 @@ export class DeviceEntity {
   driverContact?: string;
   driverOtherDetails?: string;
 
+  @Exclude()
+  attachedGeoFences: any[];
+
+  @Expose()
+  public get totalGeoFencesAttached() {
+    return this.attachedGeoFences ? this.attachedGeoFences.length : 0;
+  }
+
   constructor(partial: Partial<DeviceEntity>) {
     Object.assign(this, partial);
   }

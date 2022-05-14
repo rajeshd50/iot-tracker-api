@@ -16,6 +16,7 @@ import { ApiResponse, ApiSuccessResponse } from 'src/common/app.response';
 import { DeviceAssignStatus, DeviceStatus, QUEUE_CONSTANTS } from 'src/config';
 import { DevicePoolRepoService } from 'src/modules/database/repositories/DevicePoolRepo.service';
 import { DeviceRepoService } from 'src/modules/database/repositories/DeviceRepo.service';
+import { GeoFenceRepoService } from 'src/modules/database/repositories/GeoFenceRepo.service';
 import { DeviceDocument } from 'src/modules/database/schemas/device.schema';
 import { UserEntity } from 'src/modules/user/entities/user.entity';
 import { AssignDeviceDto } from '../dto/assign-device.dto';
@@ -38,6 +39,8 @@ export class DeviceService {
     private deviceRepoService: DeviceRepoService,
     @Inject(forwardRef(() => DevicePoolRepoService))
     private devicePoolRepoService: DevicePoolRepoService,
+    @Inject(forwardRef(() => GeoFenceRepoService))
+    private geoFenceRepoService: GeoFenceRepoService,
     @InjectQueue(QUEUE_CONSTANTS.DEVICE_SERVICE_QUEUE.NAME)
     private deviceJobQueue: Queue,
   ) {}
@@ -377,6 +380,9 @@ export class DeviceService {
       }
       await this.devicePoolRepoService.delete({ _id: devicePoolObj._id });
       await this.deviceRepoService.delete({ _id: deviceObj._id });
+
+      await this.geoFenceRepoService.pullDeviceSerialId(deviceObj.serial);
+
       return ApiSuccessResponse({}, 'Device deleted', HttpStatus.OK);
     } catch (error) {
       this.logger.error(`Unable to delete device`, error);

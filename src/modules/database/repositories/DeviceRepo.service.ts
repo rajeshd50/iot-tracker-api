@@ -27,9 +27,10 @@ export class DeviceRepoService {
     options: QueryOptions = {},
   ) {
     try {
-      return this.deviceModel
+      const deviceData = await this.deviceModel
         .findOne(query, projection, options)
         .populate('user');
+      return deviceData ? deviceData.toObject() : deviceData;
     } catch (error) {
       this.logger.error(`Error while finding device`, error);
       throw error;
@@ -202,6 +203,84 @@ export class DeviceRepoService {
       }
     } catch (error) {
       this.logger.error(`Error while deleting devices`, error);
+      throw error;
+    }
+  }
+
+  public async addGeoFenceToDevice(
+    deviceId: string | object,
+    geoFenceId: string | object,
+  ) {
+    try {
+      await this.deviceModel.updateOne(
+        {
+          _id: deviceId,
+        },
+        {
+          $push: {
+            attachedGeoFences: geoFenceId,
+          },
+        },
+      );
+      return this.findById(deviceId, null, {}, true);
+    } catch (error) {
+      this.logger.error(`Error while adding geo fence to the devices`, error);
+      throw error;
+    }
+  }
+
+  public async removeGeoFenceFromDevice(
+    deviceId: string | object,
+    geoFenceId: string | object,
+  ) {
+    try {
+      await this.deviceModel.updateOne(
+        {
+          _id: deviceId,
+        },
+        {
+          $pull: {
+            attachedGeoFences: geoFenceId,
+          },
+        },
+      );
+      return this.findById(deviceId, null, {}, true);
+    } catch (error) {
+      this.logger.error(
+        `Error while removing geo fence from the devices`,
+        error,
+      );
+      throw error;
+    }
+  }
+
+  public async pullGeoFenceId(geoFenceId: string | object) {
+    try {
+      const deviceWithGeoFence = await this.deviceModel.find({
+        attachedGeoFences: geoFenceId,
+      });
+      if (deviceWithGeoFence.length) {
+        await this.deviceModel.updateMany(
+          {
+            _id: {
+              $in: deviceWithGeoFence.map((device) => device._id),
+            },
+          },
+          {
+            $pull: {
+              attachedGeoFences: geoFenceId,
+            },
+          },
+        );
+        for (let i = 0; i < deviceWithGeoFence.length; i++) {
+          await this.deleteDeviceCache(deviceWithGeoFence[i]);
+        }
+      }
+    } catch (error) {
+      this.logger.error(
+        `Error while deleting geo fence id from devices`,
+        error,
+      );
       throw error;
     }
   }
