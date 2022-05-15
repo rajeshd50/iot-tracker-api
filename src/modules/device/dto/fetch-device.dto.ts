@@ -6,6 +6,7 @@ import {
   IsOptional,
   Min,
   IsEnum,
+  IsMongoId,
 } from 'class-validator';
 import { OrderByDirection } from 'src/common/api.common.interfaces';
 import { DeviceAssignStatus, DeviceLiveStatus, DeviceStatus } from 'src/config';
@@ -44,6 +45,14 @@ export class FetchDeviceDto {
   @IsOptional()
   @IsString()
   user: string;
+
+  @IsOptional()
+  @IsMongoId()
+  withGeoFence: string;
+
+  @IsOptional()
+  @IsMongoId()
+  withoutGeoFence: string;
 
   @IsOptional()
   @Type(() => String)

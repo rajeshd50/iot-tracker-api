@@ -6,3 +6,4 @@ export * from './cache.constants';
 export * from './queue.constants';
 export * from './device.constants';
 export * from './site-config.constants';
+export * from './geo-fence.constants';

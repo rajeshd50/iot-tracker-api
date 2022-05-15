@@ -9,6 +9,7 @@ import {
 import { FilterQuery, AnyKeys } from 'mongoose';
 
 import { ApiResponse, ApiSuccessResponse } from 'src/common/app.response';
+import { GeoFenceStatus } from 'src/config';
 import { DeviceRepoService } from 'src/modules/database/repositories/DeviceRepo.service';
 import { GeoFenceRepoService } from 'src/modules/database/repositories/GeoFenceRepo.service';
 import { GeoFenceDocument } from 'src/modules/database/schemas/geofence.schema';
@@ -46,13 +47,20 @@ export class GeoFenceService {
       const fence = await this.geoFenceRepoService.create({
         name: data.name,
         user: userEntity.id,
+        description: data.description,
         fence: {
           type: 'Polygon',
           coordinates: [transformedCoordinates],
         },
+        bound: data.bound,
+        type: data.type,
+        circleCenter: data.circleCenter,
+        circleRadius: data.circleRadius,
+        rectangleBound: data.rectangleBound,
       });
       return ApiSuccessResponse(new GeoFenceEntity(fence), 'GeoFence created');
     } catch (error) {
+      console.log(error);
       this.logger.error(`Unable to create new geo fence`, error);
       if (error instanceof HttpException) {
         throw error;
@@ -76,10 +84,16 @@ export class GeoFenceService {
       const fence = await this.geoFenceRepoService.findByIdAndUpdate(data.id, {
         name: data.name,
         user: userEntity.id,
+        description: data.description,
         fence: {
           type: 'Polygon',
           coordinates: [transformedCoordinates],
         },
+        bound: data.bound,
+        type: data.type,
+        circleCenter: data.circleCenter,
+        circleRadius: data.circleRadius,
+        rectangleBound: data.rectangleBound,
       });
       return ApiSuccessResponse(new GeoFenceEntity(fence), 'GeoFence updated');
     } catch (error) {
@@ -127,8 +141,25 @@ export class GeoFenceService {
       const query: FilterQuery<GeoFenceDocument> = {
         user: userEntity.id,
       };
-      if (filter.name) {
-        query.$or = [{ name: new RegExp(filter.name, 'i') }];
+      if (filter.searchText) {
+        query.$or = [
+          { name: new RegExp(filter.searchText, 'i') },
+          { description: new RegExp(filter.searchText, 'i') },
+        ];
+      }
+      if (filter.status) {
+        query.isActive = filter.status === GeoFenceStatus.ACTIVE;
+      }
+      if (filter.deviceSerial) {
+        query.attachedDeviceSerials = {
+          $in: [filter.deviceSerial],
+        };
+      }
+      if (filter.withoutDeviceSerial) {
+        if (!query.attachedDeviceSerials) {
+          query.attachedDeviceSerials = {};
+        }
+        query.attachedDeviceSerials.$nin = [filter.withoutDeviceSerial];
       }
 
       const paginatedFences = await this.geoFenceRepoService.paginate(

@@ -17,13 +17,34 @@ export class GeoFenceEntity {
 
   name: string;
   isActive: boolean;
+  description?: string;
 
   @Type(() => UserEntity)
   @Transform((param) => new UserEntity(param.value))
   user: User;
 
+  @Exclude()
   fence: any;
+
+  bound: any;
+  type: any;
+  circleCenter?: any;
+  circleRadius?: number;
+  rectangleBound?: any;
+
   attachedDeviceSerials: string[];
+
+  @Expose()
+  public get coordinates() {
+    return this.fence && this.fence.coordinates && this.fence.coordinates[0]
+      ? this.fence.coordinates[0].map((coord) => {
+          return {
+            lat: coord[1],
+            lng: coord[0],
+          };
+        })
+      : [];
+  }
 
   @Expose()
   public get totalDevicesAttached() {

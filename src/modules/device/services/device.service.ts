@@ -139,6 +139,17 @@ export class DeviceService {
           { serial: new RegExp(filter.searchText, 'i') },
         ];
       }
+      if (filter.withGeoFence) {
+        query.attachedGeoFences = {
+          $in: [filter.withGeoFence],
+        };
+      }
+      if (filter.withoutGeoFence) {
+        if (!query.attachedGeoFences) {
+          query.attachedGeoFences = {};
+        }
+        query.attachedGeoFences.$nin = [filter.withoutGeoFence];
+      }
 
       let defaultOrder = '-createdAt';
       if (filter.orderBy && filter.orderByDirection) {

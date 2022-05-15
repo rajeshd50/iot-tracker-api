@@ -61,7 +61,7 @@ export class GeoFenceRepoService {
       const fenceData = await this.geoFenceModel
         .findById(id, projection, options)
         .populate('user');
-      return fenceData;
+      return fenceData ? fenceData.toObject() : fenceData;
     } catch (error) {
       this.logger.error(`Error while finding fence by id`, error);
       throw error;
