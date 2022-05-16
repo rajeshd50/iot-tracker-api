@@ -17,6 +17,7 @@ import { UserEntity } from 'src/modules/user/entities/user.entity';
 import { AddGeoFenceDto } from '../dto/geofence/add-geo-fence.dto';
 import { ChangeGeoFenceStatusDto } from '../dto/geofence/change-geo-fence-status.dto';
 import { DeleteGeoFenceDto } from '../dto/geofence/delete-geo-fence.dto';
+import { FetchDeviceAllGeoFencesDto } from '../dto/geofence/fetch-device-all-geo-fence.dto';
 import { FetchGeoFencesDto } from '../dto/geofence/fetch-geo-fence.dto';
 import { GeoFenceDetailsDto } from '../dto/geofence/geo-fence-details.dto';
 import { UpdateGeoFenceToDeviceDto } from '../dto/geofence/update-fence-to-device.dto';
@@ -173,6 +174,47 @@ export class GeoFenceService {
         new GeoFenceListEntity({
           ...paginatedFences,
           items: paginatedFences.items.map((d) => new GeoFenceEntity(d)),
+        }),
+        'Geo fence list',
+      );
+    } catch (error) {
+      this.logger.error(`Unable to fetch geo fences`, error);
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException(
+        'Unable to fetch geo fences',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  public async fetchDeviceAllGeoFences(
+    filter: FetchDeviceAllGeoFencesDto,
+    userEntity: UserEntity,
+  ): Promise<ApiResponse> {
+    try {
+      const query: FilterQuery<GeoFenceDocument> = {
+        user: userEntity.id,
+      };
+      if (filter.status) {
+        query.isActive = filter.status === GeoFenceStatus.ACTIVE;
+      }
+      if (filter.deviceSerial) {
+        query.attachedDeviceSerials = {
+          $in: [filter.deviceSerial],
+        };
+      }
+
+      const allGeoFencesForDevice = await this.geoFenceRepoService.findAll(
+        query,
+      );
+      return ApiSuccessResponse(
+        new GeoFenceListEntity({
+          items: allGeoFencesForDevice.map((d) => new GeoFenceEntity(d)),
+          total: allGeoFencesForDevice.length,
+          page: 1,
+          perPage: allGeoFencesForDevice.length,
         }),
         'Geo fence list',
       );

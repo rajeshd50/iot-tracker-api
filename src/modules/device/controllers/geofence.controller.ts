@@ -5,6 +5,7 @@ import { UserData } from 'src/decorators/user.decorator';
 import { AddGeoFenceDto } from '../dto/geofence/add-geo-fence.dto';
 import { ChangeGeoFenceStatusDto } from '../dto/geofence/change-geo-fence-status.dto';
 import { DeleteGeoFenceDto } from '../dto/geofence/delete-geo-fence.dto';
+import { FetchDeviceAllGeoFencesDto } from '../dto/geofence/fetch-device-all-geo-fence.dto';
 import { FetchGeoFencesDto } from '../dto/geofence/fetch-geo-fence.dto';
 import { GeoFenceDetailsDto } from '../dto/geofence/geo-fence-details.dto';
 import { UpdateGeoFenceToDeviceDto } from '../dto/geofence/update-fence-to-device.dto';
@@ -41,6 +42,16 @@ export class GeoFenceController {
   @Post('fetch')
   async fetchGeoFences(@Body() data: FetchGeoFencesDto, @UserData() user) {
     return this.geoFenceService.fetchGeoFences(data, user);
+  }
+
+  @Roles(ROLE.USER)
+  @HttpCode(HttpStatus.OK)
+  @Post('fetch-device-fences-all')
+  async fetchDeviceAllGeoFences(
+    @Body() data: FetchDeviceAllGeoFencesDto,
+    @UserData() user,
+  ) {
+    return this.geoFenceService.fetchDeviceAllGeoFences(data, user);
   }
 
   @Roles(ROLE.USER)
