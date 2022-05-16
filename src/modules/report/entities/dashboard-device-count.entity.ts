@@ -5,6 +5,8 @@ export class DashboardDeviceCountEntity {
   active: number;
   purchased: number;
 
+  pendingApproval: number;
+
   @Expose()
   get inactive(): number {
     return this.total - this.active;

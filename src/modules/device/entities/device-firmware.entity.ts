@@ -21,6 +21,7 @@ export class DeviceFirmwareEntity {
   fileUrl: string;
   syncStatus: DeviceFirmwareSyncStatus;
   isLatest: boolean;
+  devicesSynced: number;
 
   syncAt?: Date;
   createdAt: Date;

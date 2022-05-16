@@ -25,6 +25,9 @@ export class DeviceFirmware {
   @Prop({ default: false })
   isLatest: boolean;
 
+  @Prop({ required: false, default: 0 })
+  devicesSynced: number;
+
   @Prop({
     required: true,
     enum: DeviceFirmwareSyncStatus,

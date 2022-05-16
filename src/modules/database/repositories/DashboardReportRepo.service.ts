@@ -43,6 +43,17 @@ export class DashboardReportRepoService {
                 ],
               },
             },
+            pendingApproval: {
+              $sum: {
+                $cond: [
+                  {
+                    $eq: ['$assignStatus', DeviceAssignStatus.PENDING_APPROVAL],
+                  },
+                  1,
+                  0,
+                ],
+              },
+            },
             active: {
               $sum: {
                 $cond: [{ $eq: ['$status', DeviceStatus.ACTIVE] }, 1, 0],
