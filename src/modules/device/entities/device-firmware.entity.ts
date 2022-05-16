@@ -17,7 +17,8 @@ export class DeviceFirmwareEntity {
   __v: number;
 
   version: string;
-  filePath: string;
+  key: string;
+  etag: string;
   fileUrl: string;
   syncStatus: DeviceFirmwareSyncStatus;
   isLatest: boolean;

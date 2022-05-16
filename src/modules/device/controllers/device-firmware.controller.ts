@@ -7,6 +7,11 @@ import {
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
+
+import { nanoid } from 'nanoid';
+import * as path from 'path';
+import { diskStorage } from 'multer';
+
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ROLE } from 'src/config';
 import { Roles } from 'src/decorators/user-role.decorator';
@@ -23,7 +28,21 @@ export class DeviceFirmwareController {
 
   @Roles(ROLE.ADMIN)
   @HttpCode(HttpStatus.CREATED)
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: function (req, file, cb) {
+          cb(null, path.join(__dirname, '../../../../uploads'));
+        },
+        filename: function (req, file, cb) {
+          cb(
+            null,
+            nanoid() + '_' + Date.now() + path.extname(file.originalname),
+          );
+        },
+      }),
+    }),
+  )
   @Post('add')
   async create(
     @Body() data: AddFirmwareDto,

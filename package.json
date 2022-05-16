@@ -23,6 +23,8 @@
     "seed:user": "mongoimport --db iot-tracker-dev --collection users --file /home/rajesh/Documents/projects/iot-vehicle-tracker/tracker-api/seed/data/users.json --jsonArray --username developer --password developer --authenticationDatabase admin"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.88.0",
+    "@aws-sdk/credential-providers": "^3.87.0",
     "@nestjs-modules/mailer": "^1.6.1",
     "@nestjs/bull": "^0.5.4",
     "@nestjs/common": "^8.0.0",
@@ -44,9 +46,11 @@
     "dotenv": "^16.0.0",
     "ejs": "^3.1.7",
     "helmet": "^5.0.2",
+    "i": "^0.3.7",
     "mongoose": "^6.2.10",
     "nanoid": "^3.3.3",
     "nodemailer": "^6.7.4",
+    "npm": "^8.10.0",
     "passport": "^0.5.2",
     "passport-jwt": "^4.0.0",
     "passport-local": "^1.0.0",

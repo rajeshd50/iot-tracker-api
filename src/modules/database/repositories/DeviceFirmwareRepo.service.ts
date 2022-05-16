@@ -68,9 +68,13 @@ export class DeviceFirmwareRepoService {
         },
       });
       if (!existingLatest) {
-        await this.findByIdAndUpdate(newAddedId, {
-          isLatest: true,
-        });
+        await this.findByIdAndUpdate(
+          newAddedId,
+          {
+            isLatest: true,
+          },
+          true,
+        );
       } else {
         const addedFirmware = await this.findById(newAddedId);
         const latestVersion = SemverSortDesc([
@@ -79,8 +83,16 @@ export class DeviceFirmwareRepoService {
         ])[0];
 
         if (latestVersion === addedFirmware.version) {
-          await this.findByIdAndUpdate(addedFirmware.id, { isLatest: true });
-          await this.findByIdAndUpdate(existingLatest.id, { isLatest: false });
+          await this.findByIdAndUpdate(
+            addedFirmware.id,
+            { isLatest: true },
+            true,
+          );
+          await this.findByIdAndUpdate(
+            existingLatest.id,
+            { isLatest: false },
+            true,
+          );
         }
       }
     } catch (error) {
@@ -105,7 +117,7 @@ export class DeviceFirmwareRepoService {
         if (latestVersion) {
           const findObj = allFirmware.find((f) => f.version === latestVersion);
           if (findObj) {
-            await this.findByIdAndUpdate(findObj._id, { isLatest: true });
+            await this.findByIdAndUpdate(findObj._id, { isLatest: true }, true);
           }
         }
       }
@@ -127,9 +139,25 @@ export class DeviceFirmwareRepoService {
       const fenceData = await this.deviceFirmwareModel
         .findById(id, projection, options)
         .populate(['createdBy', 'syncBy']);
-      return fenceData;
+      return fenceData ? fenceData.toObject() : fenceData;
     } catch (error) {
-      this.logger.error(`Error while finding fence by id`, error);
+      this.logger.error(`Error while finding firmware by id`, error);
+      throw error;
+    }
+  }
+
+  public async findByVersion(
+    version: string,
+    projection: ProjectionType<DeviceFirmwareDocument> = null,
+    options: QueryOptions = {},
+  ) {
+    try {
+      const fenceData = await this.deviceFirmwareModel
+        .findOne({ version }, projection, options)
+        .populate(['createdBy', 'syncBy']);
+      return fenceData ? fenceData.toObject() : fenceData;
+    } catch (error) {
+      this.logger.error(`Error while finding firmware by version`, error);
       throw error;
     }
   }
@@ -194,6 +222,7 @@ export class DeviceFirmwareRepoService {
   public async findByIdAndUpdate(
     id: string | object,
     updateData: AnyKeys<DeviceFirmwareDocument>,
+    ignoreSubSequentUpdate = false,
   ) {
     try {
       await this.deviceFirmwareModel.findByIdAndUpdate(
@@ -205,7 +234,9 @@ export class DeviceFirmwareRepoService {
           new: true,
         },
       );
-      await this.updateIsLatestForNewAddUpdate(id);
+      if (!ignoreSubSequentUpdate) {
+        await this.updateIsLatestForNewAddUpdate(id);
+      }
       return this.findById(id);
     } catch (error) {
       this.logger.error(`Error while updating device firmware`, error);

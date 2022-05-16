@@ -10,7 +10,6 @@ import { DeviceFirmwareService } from './services/device-firmware.service';
 import { DevicePoolService } from './services/device-pool.service';
 import { DeviceService } from './services/device.service';
 import { GeoFenceService } from './services/geofence.service';
-
 @Module({
   imports: [CoreModule, DatabaseModule],
   providers: [

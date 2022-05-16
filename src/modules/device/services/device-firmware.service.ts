@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { FilterQuery, AnyKeys } from 'mongoose';
 import { ApiResponse, ApiSuccessResponse } from 'src/common/app.response';
+import { AwsS3Service } from 'src/modules/core/services/aws.s3.service';
 import { DeviceFirmwareRepoService } from 'src/modules/database/repositories/DeviceFirmwareRepo.service';
 import {
   DeviceFirmwareDocument,
@@ -28,6 +29,8 @@ export class DeviceFirmwareService {
   constructor(
     @Inject(forwardRef(() => DeviceFirmwareRepoService))
     private firmwareRepoService: DeviceFirmwareRepoService,
+    @Inject(forwardRef(() => AwsS3Service))
+    private s3Service: AwsS3Service,
   ) {}
 
   public async create(
@@ -39,10 +42,25 @@ export class DeviceFirmwareService {
       if (!file) {
         throw new HttpException('File is required', HttpStatus.BAD_REQUEST);
       }
-      const firmware = await this.firmwareRepoService.create({
-        version: this.serializeVersion(data.version),
+      const version = this.serializeVersion(data.version);
+      const existingFirmware = await this.firmwareRepoService.findByVersion(
+        version,
+      );
+      if (existingFirmware) {
+        throw new HttpException(
+          'Version already exists',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      const fileUploadResp = await this.s3Service.uploadFile({
+        fileName: `${version}/${file.filename}`,
         filePath: file.path,
-        fileUrl: file.path,
+      });
+      const firmware = await this.firmwareRepoService.create({
+        version,
+        key: fileUploadResp.key,
+        etag: fileUploadResp.etag,
+        fileUrl: fileUploadResp.url,
         createdBy: userEntity.id,
       });
       return ApiSuccessResponse(
@@ -56,7 +74,7 @@ export class DeviceFirmwareService {
       }
       throw new HttpException(
         'Unable to create firmware entity',
-        HttpStatus.NOT_FOUND,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }

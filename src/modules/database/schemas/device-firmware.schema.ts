@@ -17,7 +17,10 @@ export class DeviceFirmware {
   version: string;
 
   @Prop({ required: true })
-  filePath: string;
+  key: string;
+
+  @Prop({ required: true })
+  etag: string;
 
   @Prop({ required: false })
   fileUrl: string;
