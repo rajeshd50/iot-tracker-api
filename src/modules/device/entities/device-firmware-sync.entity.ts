@@ -1,9 +1,8 @@
 import { Exclude, Expose, Transform, Type } from 'class-transformer';
-import { DeviceFirmwareSyncStatus } from 'src/modules/database/schemas/device-firmware.schema';
 import { User } from 'src/modules/database/schemas/user.schema';
 import { UserEntity } from 'src/modules/user/entities/user.entity';
 
-export class DeviceFirmwareEntity {
+export class DeviceFirmwareSyncEntity {
   @Expose()
   public get id() {
     return this._id && typeof this._id === 'object'
@@ -16,23 +15,28 @@ export class DeviceFirmwareEntity {
   @Exclude()
   __v: number;
 
-  version: string;
-  key: string;
-  etag: string;
-  fileUrl: string;
-  syncStatus: DeviceFirmwareSyncStatus;
-  isLatest: boolean;
-  signedUrl?: string;
-  signedUrlExpiresAt?: Date | string;
+  @Exclude()
+  firmware: any;
+
+  @Exclude()
+  attachedDevices: any[];
+
+  @Exclude()
+  confirmedDevices: any[];
+
+  syncJobId: string;
+  completedAt?: Date | string;
   createdAt: Date;
   updatedAt?: Date;
-  syncAt?: Date | string;
+  isAllDeviceSelected: boolean;
+  confirmedCount: number;
+  totalDeviceCount: number;
 
   @Type(() => UserEntity)
   @Transform((param) => new UserEntity(param.value))
-  createdBy?: User;
+  syncBy?: User;
 
-  constructor(partial: Partial<DeviceFirmwareEntity>) {
+  constructor(partial: Partial<DeviceFirmwareSyncEntity>) {
     Object.assign(this, partial);
   }
 }

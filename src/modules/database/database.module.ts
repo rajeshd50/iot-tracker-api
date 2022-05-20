@@ -12,6 +12,10 @@ import { GeoFenceRepoService } from './repositories/GeoFenceRepo.service';
 import { SiteConfigRepoService } from './repositories/SiteConfigRepo.service';
 import { UserRepoService } from './repositories/UserRepo.service';
 import {
+  DeviceFirmwareSync,
+  DeviceFirmwareSyncSchema,
+} from './schemas/device-firmware-sync.schema';
+import {
   DeviceFirmware,
   DeviceFirmwareSchema,
 } from './schemas/device-firmware.schema';
@@ -50,6 +54,7 @@ import { User, UserSchema } from './schemas/user.schema';
         { name: SiteConfig.name, schema: SiteConfigSchema },
         { name: GeoFence.name, schema: GeoFenceSchema },
         { name: DeviceFirmware.name, schema: DeviceFirmwareSchema },
+        { name: DeviceFirmwareSync.name, schema: DeviceFirmwareSyncSchema },
         { name: SupportTicket.name, schema: SupportTicketSchema },
       ],
       STRING_CONSTANTS.MAIN_DOC_DB_CONNECTION_NAME,

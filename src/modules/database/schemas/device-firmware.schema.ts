@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Schema as MongooseSchema } from 'mongoose';
+import { DeviceDocument } from './device.schema';
 import { UserDocument } from './user.schema';
 
 export type DeviceFirmwareDocument = DeviceFirmware & Document;
@@ -25,11 +26,17 @@ export class DeviceFirmware {
   @Prop({ required: false })
   fileUrl: string;
 
+  @Prop({ required: false })
+  signedUrl: string;
+
+  @Prop({ required: false })
+  signedUrlExpiresAt: Date;
+
+  @Prop({ required: false })
+  syncAt: Date;
+
   @Prop({ default: false })
   isLatest: boolean;
-
-  @Prop({ required: false, default: 0 })
-  devicesSynced: number;
 
   @Prop({
     required: true,
@@ -37,16 +44,6 @@ export class DeviceFirmware {
     default: DeviceFirmwareSyncStatus.NOT_SYNCED,
   })
   syncStatus: DeviceFirmwareSyncStatus;
-
-  @Prop({ required: false })
-  syncAt: Date;
-
-  @Prop({
-    type: MongooseSchema.Types.ObjectId,
-    ref: 'User',
-    required: false,
-  })
-  syncBy: UserDocument;
 
   @Prop({
     type: MongooseSchema.Types.ObjectId,

@@ -22,6 +22,10 @@ import {
   DeviceFirmware,
   DeviceFirmwareDocument,
 } from '../schemas/device-firmware.schema';
+import {
+  DeviceFirmwareSync,
+  DeviceFirmwareSyncDocument,
+} from '../schemas/device-firmware-sync.schema';
 
 @Injectable()
 export class DeviceFirmwareRepoService {
@@ -29,6 +33,8 @@ export class DeviceFirmwareRepoService {
   constructor(
     @InjectModel(DeviceFirmware.name)
     private deviceFirmwareModel: Model<DeviceFirmwareDocument>,
+    @InjectModel(DeviceFirmwareSync.name)
+    private deviceFirmwareSyncModel: Model<DeviceFirmwareSyncDocument>,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
@@ -40,7 +46,7 @@ export class DeviceFirmwareRepoService {
     try {
       const resp = await this.deviceFirmwareModel
         .findOne(query, projection, options)
-        .populate(['createdBy', 'syncBy']);
+        .populate(['createdBy']);
       return resp ? resp.toObject() : resp;
     } catch (error) {
       this.logger.error(`Error while finding device firmware`, error);
@@ -138,7 +144,7 @@ export class DeviceFirmwareRepoService {
     try {
       const fenceData = await this.deviceFirmwareModel
         .findById(id, projection, options)
-        .populate(['createdBy', 'syncBy']);
+        .populate(['createdBy']);
       return fenceData ? fenceData.toObject() : fenceData;
     } catch (error) {
       this.logger.error(`Error while finding firmware by id`, error);
@@ -154,7 +160,7 @@ export class DeviceFirmwareRepoService {
     try {
       const fenceData = await this.deviceFirmwareModel
         .findOne({ version }, projection, options)
-        .populate(['createdBy', 'syncBy']);
+        .populate(['createdBy']);
       return fenceData ? fenceData.toObject() : fenceData;
     } catch (error) {
       this.logger.error(`Error while finding firmware by version`, error);
@@ -173,7 +179,7 @@ export class DeviceFirmwareRepoService {
           ...options,
           lean: true,
         })
-        .populate(['createdBy', 'syncBy']);
+        .populate(['createdBy']);
     } catch (error) {
       this.logger.error(`Error while finding device firmware`, error);
       throw error;
@@ -196,7 +202,7 @@ export class DeviceFirmwareRepoService {
           skip,
           limit,
         })
-        .populate(['createdBy', 'syncBy']);
+        .populate(['createdBy']);
       return {
         total,
         page,
@@ -240,6 +246,37 @@ export class DeviceFirmwareRepoService {
       return this.findById(id);
     } catch (error) {
       this.logger.error(`Error while updating device firmware`, error);
+      throw error;
+    }
+  }
+
+  public async createSync(data: AnyKeys<DeviceFirmwareSyncDocument>) {
+    try {
+      const firmwareSyncCreated = await this.deviceFirmwareSyncModel.create(
+        data,
+      );
+      return firmwareSyncCreated;
+    } catch (error) {
+      this.logger.error(`Error while creating device firmware sync`, error);
+      throw error;
+    }
+  }
+
+  public async findAllSync(
+    query: FilterQuery<DeviceFirmwareSyncDocument>,
+    projection: ProjectionType<DeviceFirmwareSyncDocument> = null,
+    options: QueryOptions = {},
+  ) {
+    try {
+      return this.deviceFirmwareSyncModel
+        .find(query, projection, {
+          ...options,
+          lean: true,
+        })
+        .sort('-createdAt')
+        .populate(['syncBy']);
+    } catch (error) {
+      this.logger.error(`Error while finding device firmware sync`, error);
       throw error;
     }
   }

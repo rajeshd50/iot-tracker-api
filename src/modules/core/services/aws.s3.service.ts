@@ -3,6 +3,11 @@ import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { fromEnv } from '@aws-sdk/credential-providers';
 import { ConfigService } from '@nestjs/config';
 import { ENV_CONSTANTS } from 'src/config';
+import { S3RequestPresigner } from '@aws-sdk/s3-request-presigner';
+import { parseUrl } from '@aws-sdk/url-parser';
+import { Hash } from '@aws-sdk/hash-node';
+import { formatUrl } from '@aws-sdk/util-format-url';
+import { HttpRequest } from '@aws-sdk/protocol-http';
 import * as fs from 'fs';
 
 export interface S3FileUploadParams {
@@ -20,10 +25,16 @@ export interface S3FileUploadResponse {
 export class AwsS3Service {
   private logger = new Logger(AwsS3Service.name);
   private s3client: S3Client = null;
+  private preSigner: S3RequestPresigner = null;
   constructor(private configService: ConfigService) {
     this.s3client = new S3Client({
       credentials: fromEnv(),
       region: configService.get<string>(ENV_CONSTANTS.S3_REGION),
+    });
+    this.preSigner = new S3RequestPresigner({
+      credentials: fromEnv(),
+      region: configService.get<string>(ENV_CONSTANTS.S3_REGION),
+      sha256: Hash.bind(null, 'sha256'),
     });
   }
 
@@ -71,5 +82,18 @@ export class AwsS3Service {
     )}.s3.${this.configService.get<string>(
       ENV_CONSTANTS.S3_REGION,
     )}.amazonaws.com/${fileName}`;
+  }
+
+  public async getPresignedUrl(objectUrl: string, expiresIn: number) {
+    try {
+      const s3ObjectUrl = parseUrl(objectUrl);
+      const url = await this.preSigner.presign(new HttpRequest(s3ObjectUrl), {
+        expiresIn,
+      });
+      return formatUrl(url);
+    } catch (error) {
+      this.logger.error(`Error while fetching pre signed url`, error);
+      throw error;
+    }
   }
 }

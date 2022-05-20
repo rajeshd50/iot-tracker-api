@@ -21,6 +21,8 @@ import { DeleteFirmwareDto } from '../dto/firmware/delete-firmware.dto';
 import { FetchFirmwareDto } from '../dto/firmware/fetch-firmware.dto';
 import { SyncFirmwareDto } from '../dto/firmware/sync-firmware.dto';
 import { DeviceFirmwareService } from '../services/device-firmware.service';
+import { FirmwareGenerateLinkDto } from '../dto/firmware/firmware-generate-link.dto';
+import { FirmwareSyncListDto } from '../dto/firmware/firmware-sync-list.dto';
 
 @Controller('firmware')
 export class DeviceFirmwareController {
@@ -67,9 +69,23 @@ export class DeviceFirmwareController {
   }
 
   @Roles(ROLE.ADMIN)
-  @HttpCode(HttpStatus.OK)
+  @HttpCode(HttpStatus.CREATED)
   @Post('sync')
   async syncFirmware(@Body() data: SyncFirmwareDto, @UserData() user) {
     return this.deviceFirmwareService.syncFirmware(data, user);
+  }
+
+  @Roles(ROLE.ADMIN)
+  @HttpCode(HttpStatus.CREATED)
+  @Post('regenerate-link')
+  async regenerateLink(@Body() data: FirmwareGenerateLinkDto) {
+    return this.deviceFirmwareService.regenerateLink(data);
+  }
+
+  @Roles(ROLE.ADMIN)
+  @HttpCode(HttpStatus.OK)
+  @Post('sync-list')
+  async getFirmwareSyncList(@Body() data: FirmwareSyncListDto) {
+    return this.deviceFirmwareService.getFirmwareSyncList(data);
   }
 }

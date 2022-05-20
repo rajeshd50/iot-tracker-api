@@ -37,6 +37,16 @@ export class DeviceRepoService {
     }
   }
 
+  public async count(query: FilterQuery<DeviceDocument>) {
+    try {
+      const deviceCount = await this.deviceModel.countDocuments(query);
+      return deviceCount || 0;
+    } catch (error) {
+      this.logger.error(`Error while counting device`, error);
+      throw error;
+    }
+  }
+
   public async findBySerial(
     serial: string,
     projection: ProjectionType<DeviceDocument> = null,
