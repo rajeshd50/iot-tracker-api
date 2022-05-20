@@ -43,8 +43,9 @@ export class UserController {
     return this.userService.getAllUsersWithDeviceStats(data, user);
   }
 
-  @Roles(ROLE.USER)
+  @Roles(ROLE.USER, ROLE.ADMIN)
   @Post('')
+  @HttpCode(HttpStatus.OK)
   async updateUser(@Body() data: UpdateUserDto, @UserData() user: UserEntity) {
     return this.userService.updateUser(data, user);
   }

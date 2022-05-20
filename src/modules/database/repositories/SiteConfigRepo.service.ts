@@ -34,7 +34,12 @@ export class SiteConfigRepoService {
     options: QueryOptions = {},
   ) {
     try {
-      return this.siteConfigModel.findOne(query, projection, options);
+      const siteConfig = await this.siteConfigModel.findOne(
+        query,
+        projection,
+        options,
+      );
+      return siteConfig ? siteConfig.toObject() : null;
     } catch (error) {
       this.logger.error(`Error while finding site config`, error);
       throw error;
@@ -45,12 +50,15 @@ export class SiteConfigRepoService {
     key: string,
     projection: ProjectionType<SiteConfigDocument> = null,
     options: QueryOptions = {},
+    ignoreCache = false,
   ) {
     try {
       let siteConfigData: SiteConfigDocument = null;
-      siteConfigData = await this.cacheManager.get(
-        CACHE_CONSTANTS.SITE_CONFIG.BY_KEY(key.toLocaleLowerCase()),
-      );
+      if (!ignoreCache) {
+        siteConfigData = await this.cacheManager.get(
+          CACHE_CONSTANTS.SITE_CONFIG.BY_KEY(key.toLocaleLowerCase()),
+        );
+      }
       if (!siteConfigData) {
         siteConfigData = await this.siteConfigModel.findOne(
           {
@@ -89,9 +97,17 @@ export class SiteConfigRepoService {
 
   public async create(data: AnyKeys<SiteConfigDocument>) {
     try {
-      const siteConfigCreated = await this.siteConfigModel.create(data);
-      await this.setSiteConfigCache(siteConfigCreated);
-      return siteConfigCreated;
+      if (!data.key) {
+        throw new Error('Key required');
+      }
+      const existingSiteConfig = await this.findByKey(data.key);
+      if (existingSiteConfig) {
+        return this.findByIdAndUpdate(existingSiteConfig._id, data);
+      } else {
+        const siteConfigCreated = await this.siteConfigModel.create(data);
+        await this.setSiteConfigCache(siteConfigCreated);
+        return siteConfigCreated.toObject();
+      }
     } catch (error) {
       this.logger.error(`Error while creating site config`, error);
       throw error;
@@ -104,7 +120,10 @@ export class SiteConfigRepoService {
     options: QueryOptions = {},
   ) {
     try {
-      return this.siteConfigModel.find(query, projection, options);
+      return this.siteConfigModel.find(query, projection, {
+        ...options,
+        lean: true,
+      });
     } catch (error) {
       this.logger.error(`Error while finding site config`, error);
       throw error;
@@ -123,6 +142,7 @@ export class SiteConfigRepoService {
       const total = await this.siteConfigModel.countDocuments(query);
       const siteConfigs = await this.siteConfigModel.find(query, projection, {
         ...options,
+        lean: true,
         skip,
         limit,
       });
@@ -180,7 +200,7 @@ export class SiteConfigRepoService {
           },
         );
       await this.setSiteConfigCache(updatedSiteConfigData);
-      return updatedSiteConfigData;
+      return this.findOne({ _id: updatedSiteConfigData._id });
     } catch (error) {
       this.logger.error(`Error while updating site config`, error);
       throw error;
@@ -191,7 +211,7 @@ export class SiteConfigRepoService {
   public async findAdminMailingList() {
     try {
       const mailingListValue = await this.getValueByKey(
-        SITE_CONFIG.ADMIN_MAILING_LIST,
+        SITE_CONFIG.ADMIN_MAILING_LIST.text,
       );
       const adminUsers = await this.userRepoService.findAll({
         role: ROLE.ADMIN,

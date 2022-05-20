@@ -53,6 +53,12 @@ export class UserEntity {
   secondaryContactNumber?: string;
   alternateEmailAddress?: string;
 
+  @Exclude()
+  maxDevice: number;
+
+  @Exclude()
+  maxFencePerDevice: number;
+
   @Expose()
   get fullName(): string {
     return [this.title, this.firstName, this.middleName, this.lastName]

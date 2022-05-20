@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsEmail } from 'class-validator';
+import { IsString, IsOptional, IsEmail, ValidateIf } from 'class-validator';
 
 export class UpdateUserDto {
   @IsString()
@@ -51,6 +51,7 @@ export class UpdateUserDto {
 
   @IsString()
   @IsOptional()
+  @ValidateIf((o) => !!o.alternateEmailAddress)
   @IsEmail()
   alternateEmailAddress: string;
 }

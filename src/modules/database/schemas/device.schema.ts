@@ -85,6 +85,9 @@ export class Device {
     ref: 'GeoFence',
   })
   attachedGeoFences: GeoFenceDocument[];
+
+  @Prop({ required: false, default: -1 })
+  maxFence: number;
 }
 
 export const DeviceSchema = SchemaFactory.createForClass(Device);

@@ -46,6 +46,9 @@ export class DeviceEntity {
   @Exclude()
   attachedGeoFences: any[];
 
+  @Exclude()
+  maxFence: number;
+
   @Expose()
   public get totalGeoFencesAttached() {
     return this.attachedGeoFences ? this.attachedGeoFences.length : 0;

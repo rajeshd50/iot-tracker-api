@@ -77,6 +77,12 @@ export class User {
 
   @Prop()
   alternateEmailAddress: string;
+
+  @Prop({ required: false, default: -1 })
+  maxDevice: number;
+
+  @Prop({ required: false, default: -1 })
+  maxFencePerDevice: number;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

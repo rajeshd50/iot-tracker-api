@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
+import { SITE_CONFIG_TYPES } from 'src/config';
 
 export type SiteConfigDocument = SiteConfig & Document;
 
@@ -10,8 +11,18 @@ export class SiteConfig {
   @Prop({ required: true, index: true, unique: true, lowercase: true })
   key: string;
 
-  @Prop()
+  @Prop({
+    required: true,
+    enum: SITE_CONFIG_TYPES,
+    default: SITE_CONFIG_TYPES.TEXT,
+  })
+  type: SITE_CONFIG_TYPES;
+
+  @Prop({ required: false })
   value: string;
+
+  @Prop({ required: false })
+  description: string;
 
   @Prop({ default: true })
   isActive: boolean;

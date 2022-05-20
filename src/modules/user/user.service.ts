@@ -152,7 +152,7 @@ export class UserService {
       );
       return ApiSuccessResponse(
         new UserEntity({
-          ...user.toObject(),
+          ...user,
         }),
         'User updated',
         HttpStatus.CREATED,
