@@ -26,6 +26,7 @@ import { AddUserDto } from './dto/add-user.dto';
 import { UsersWithDeviceListResultEntity } from './entities/user-list-with-device.entity';
 import { UserWithDeviceEntity } from './entities/user-with-device.entity';
 import { UpdateUserStatusDto } from './dto/update-user-status.dto';
+import { UpdateUserLimitDto } from './dto/update-user-limit.dto';
 
 @Injectable()
 export class UserService {
@@ -440,6 +441,31 @@ export class UserService {
       this.logger.error(`Error while updating user status`, error);
       throw new HttpException(
         'User status can not be updated',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+  }
+
+  public async updateUserLimit(data: UpdateUserLimitDto): Promise<ApiResponse> {
+    try {
+      const userDetails = await this.userRepoService.findById(data.id);
+      if (!userDetails) {
+        throw new HttpException('Invalid user', HttpStatus.BAD_REQUEST);
+      }
+      await this.userRepoService.findByIdAndUpdate(data.id, {
+        maxDevice: data.maxDevice,
+        maxFencePerDevice: data.maxFencePerDevice,
+      });
+      const userDetailsUpdated =
+        await this.userRepoService.findByIdWithDeviceStat(data.id);
+      return ApiSuccessResponse(
+        new UserWithDeviceEntity(userDetailsUpdated),
+        'User limit updated',
+      );
+    } catch (error) {
+      this.logger.error(`Error while updating user limit`, error);
+      throw new HttpException(
+        'User limit can not be updated',
         HttpStatus.NOT_FOUND,
       );
     }

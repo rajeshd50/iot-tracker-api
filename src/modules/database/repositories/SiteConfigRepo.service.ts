@@ -86,7 +86,9 @@ export class SiteConfigRepoService {
       const availableKeys = await this.getAvailableKeys(true);
       const availableInConfig = Object.assign({}, SITE_CONFIG);
       const toInsertData: AnyKeys<SiteConfigDocument>[] = [];
-      const availableInConfigKeyArray = Object.keys(availableInConfig);
+      const availableInConfigKeyArray = Object.keys(availableInConfig).map(
+        (conf) => availableInConfig[conf].text,
+      );
 
       for (let i = 0; i < availableInConfigKeyArray.length; i++) {
         if (!availableKeys.includes(availableInConfigKeyArray[i])) {
@@ -179,7 +181,7 @@ export class SiteConfigRepoService {
       value = await this.cacheManager.get(
         CACHE_CONSTANTS.SITE_CONFIG.VALUE_BY_KEY(key.toLocaleLowerCase()),
       );
-      if (value !== undefined) {
+      if (value !== undefined && value !== null) {
         return value;
       }
       const siteConfig = await this.findByKey(key);

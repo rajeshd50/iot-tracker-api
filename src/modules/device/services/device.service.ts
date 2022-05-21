@@ -13,10 +13,16 @@ import { FilterQuery, AnyKeys } from 'mongoose';
 import { OrderByDirection } from 'src/common/api.common.interfaces';
 
 import { ApiResponse, ApiSuccessResponse } from 'src/common/app.response';
-import { DeviceAssignStatus, DeviceStatus, QUEUE_CONSTANTS } from 'src/config';
+import {
+  DeviceAssignStatus,
+  DeviceStatus,
+  QUEUE_CONSTANTS,
+  UNLIMITED_NUMBER,
+} from 'src/config';
 import { DevicePoolRepoService } from 'src/modules/database/repositories/DevicePoolRepo.service';
 import { DeviceRepoService } from 'src/modules/database/repositories/DeviceRepo.service';
 import { GeoFenceRepoService } from 'src/modules/database/repositories/GeoFenceRepo.service';
+import { UserLimitRepoService } from 'src/modules/database/repositories/UserLimitRepo.service';
 import { DeviceDocument } from 'src/modules/database/schemas/device.schema';
 import { UserEntity } from 'src/modules/user/entities/user.entity';
 import { AssignDeviceDto } from '../dto/assign-device.dto';
@@ -26,6 +32,7 @@ import { DeviceDetailsDto } from '../dto/device-details.dto';
 import { DeviceUpdateDto } from '../dto/device-update.dto';
 import { FetchDeviceDto } from '../dto/fetch-device.dto';
 import { UpdateAssignmentApprovalDto } from '../dto/update-assignment-approval.dto';
+import { UpdateDeviceLimitDto } from '../dto/update-device-limit.dto';
 import { UpdateDeviceStatusDto } from '../dto/update-device-status.dto';
 import { DeviceEntity } from '../entities/device.entity';
 import { DeviceListEntity } from '../entities/device.list.entity';
@@ -41,6 +48,8 @@ export class DeviceService {
     private devicePoolRepoService: DevicePoolRepoService,
     @Inject(forwardRef(() => GeoFenceRepoService))
     private geoFenceRepoService: GeoFenceRepoService,
+    @Inject(forwardRef(() => UserLimitRepoService))
+    private userLimitRepoService: UserLimitRepoService,
     @InjectQueue(QUEUE_CONSTANTS.DEVICE_SERVICE_QUEUE.NAME)
     private deviceJobQueue: Queue,
   ) {}
@@ -66,6 +75,19 @@ export class DeviceService {
       if (device.assignStatus === DeviceAssignStatus.PENDING_APPROVAL) {
         throw new HttpException(
           'Request already created',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      const remainingLimitForDeviceAdd =
+        await this.userLimitRepoService.getRemainingDeviceLimitForUser(
+          userEntity.id,
+        );
+      if (
+        remainingLimitForDeviceAdd !== UNLIMITED_NUMBER &&
+        remainingLimitForDeviceAdd === 0
+      ) {
+        throw new HttpException(
+          'Limit to add device reached, please contact support for further help!',
           HttpStatus.BAD_REQUEST,
         );
       }
@@ -454,6 +476,35 @@ export class DeviceService {
       }
       throw new HttpException(
         'Unable to assign device to user',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  public async updateDeviceLimit(
+    data: UpdateDeviceLimitDto,
+  ): Promise<ApiResponse> {
+    try {
+      const device = await this.deviceRepoService.findBySerial(data.serial);
+      if (!device) {
+        throw new HttpException('Invalid device', HttpStatus.NOT_FOUND);
+      }
+      const updateObj: AnyKeys<DeviceDocument> = {
+        maxFence: data.maxFence,
+      };
+      await this.deviceRepoService.findByIdAndUpdate(device._id, updateObj);
+      const updatedDevice = await this.deviceRepoService.findById(device._id);
+      return ApiSuccessResponse(
+        new DeviceEntity(updatedDevice),
+        'Device limit updated',
+      );
+    } catch (error) {
+      this.logger.error(`Unable to update device limit`, error);
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException(
+        'Unable to update device limit',
         HttpStatus.BAD_REQUEST,
       );
     }

@@ -11,6 +11,7 @@ import { ROLE } from 'src/config';
 import { Roles } from 'src/decorators/user-role.decorator';
 import { UserData } from 'src/decorators/user.decorator';
 import { AddUserDto } from './dto/add-user.dto';
+import { UpdateUserLimitDto } from './dto/update-user-limit.dto';
 import { UpdateUserStatusDto } from './dto/update-user-status.dto';
 import { FetchUserDto } from './dto/user-fetch.dto';
 import { UpdateUserDto } from './dto/user.update.dto';
@@ -66,5 +67,12 @@ export class UserController {
   @Post('update-user-status')
   async updateUserStatus(@Body() data: UpdateUserStatusDto) {
     return this.userService.updateUserStatus(data);
+  }
+
+  @Roles(ROLE.ADMIN)
+  @HttpCode(HttpStatus.OK)
+  @Post('update-user-limit')
+  async updateUserLimit(@Body() data: UpdateUserLimitDto) {
+    return this.userService.updateUserLimit(data);
   }
 }

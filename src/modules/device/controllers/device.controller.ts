@@ -9,6 +9,7 @@ import { DeviceDetailsDto } from '../dto/device-details.dto';
 import { DeviceUpdateDto } from '../dto/device-update.dto';
 import { FetchDeviceDto } from '../dto/fetch-device.dto';
 import { UpdateAssignmentApprovalDto } from '../dto/update-assignment-approval.dto';
+import { UpdateDeviceLimitDto } from '../dto/update-device-limit.dto';
 import { UpdateDeviceStatusDto } from '../dto/update-device-status.dto';
 import { DeviceService } from '../services/device.service';
 
@@ -73,5 +74,12 @@ export class DeviceController {
   @Post('assign')
   async assignDevice(@Body() data: AssignDeviceDto, @UserData() user) {
     return this.deviceService.assignDevice(data, user);
+  }
+
+  @Roles(ROLE.ADMIN)
+  @HttpCode(HttpStatus.OK)
+  @Post('update-limit')
+  async updateDeviceLimit(@Body() data: UpdateDeviceLimitDto) {
+    return this.deviceService.updateDeviceLimit(data);
   }
 }

@@ -81,9 +81,10 @@ export class UserRepoService {
   ) {
     try {
       let userData: UserDocument = null;
+      const idStr = typeof id === 'string' ? id : id.toString();
       if (!refreshCache) {
         userData = await this.cacheManager.get(
-          CACHE_CONSTANTS.USER.BY_ID(id.toString()),
+          CACHE_CONSTANTS.USER.BY_ID(idStr),
         );
       }
       if (!userData) {

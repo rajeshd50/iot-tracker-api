@@ -9,9 +9,10 @@ import {
 import { FilterQuery, AnyKeys } from 'mongoose';
 
 import { ApiResponse, ApiSuccessResponse } from 'src/common/app.response';
-import { GeoFenceStatus } from 'src/config';
+import { GeoFenceStatus, UNLIMITED_NUMBER } from 'src/config';
 import { DeviceRepoService } from 'src/modules/database/repositories/DeviceRepo.service';
 import { GeoFenceRepoService } from 'src/modules/database/repositories/GeoFenceRepo.service';
+import { UserLimitRepoService } from 'src/modules/database/repositories/UserLimitRepo.service';
 import { GeoFenceDocument } from 'src/modules/database/schemas/geofence.schema';
 import { UserEntity } from 'src/modules/user/entities/user.entity';
 import { AddGeoFenceDto } from '../dto/geofence/add-geo-fence.dto';
@@ -34,6 +35,8 @@ export class GeoFenceService {
     private geoFenceRepoService: GeoFenceRepoService,
     @Inject(forwardRef(() => DeviceRepoService))
     private deviceRepoService: DeviceRepoService,
+    @Inject(forwardRef(() => UserLimitRepoService))
+    private userLimitRepoService: UserLimitRepoService,
   ) {}
 
   public async create(
@@ -277,6 +280,19 @@ export class GeoFenceService {
       }
       if (!device) {
         throw new HttpException('Invalid device', HttpStatus.BAD_REQUEST);
+      }
+      const remainingLimitForFenceAddInDevice =
+        await this.userLimitRepoService.getRemainingGeoFenceLimitForDevice(
+          device.serial,
+        );
+      if (
+        remainingLimitForFenceAddInDevice !== UNLIMITED_NUMBER &&
+        remainingLimitForFenceAddInDevice === 0
+      ) {
+        throw new HttpException(
+          'Limit to add fence in device reached, please contact support for further help!',
+          HttpStatus.BAD_REQUEST,
+        );
       }
       if (
         fence.attachedDeviceSerials &&

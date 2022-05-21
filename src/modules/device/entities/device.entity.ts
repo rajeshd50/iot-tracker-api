@@ -42,12 +42,10 @@ export class DeviceEntity {
   driverName?: string;
   driverContact?: string;
   driverOtherDetails?: string;
+  maxFence: number;
 
   @Exclude()
   attachedGeoFences: any[];
-
-  @Exclude()
-  maxFence: number;
 
   @Expose()
   public get totalGeoFencesAttached() {

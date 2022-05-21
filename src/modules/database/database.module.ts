@@ -10,6 +10,7 @@ import { DevicePoolRepoService } from './repositories/DevicePoolRepo.service';
 import { DeviceRepoService } from './repositories/DeviceRepo.service';
 import { GeoFenceRepoService } from './repositories/GeoFenceRepo.service';
 import { SiteConfigRepoService } from './repositories/SiteConfigRepo.service';
+import { UserLimitRepoService } from './repositories/UserLimitRepo.service';
 import { UserRepoService } from './repositories/UserRepo.service';
 import {
   DeviceFirmwareSync,
@@ -68,6 +69,7 @@ import { User, UserSchema } from './schemas/user.schema';
     SiteConfigRepoService,
     GeoFenceRepoService,
     DeviceFirmwareRepoService,
+    UserLimitRepoService,
   ],
   exports: [
     MongooseModule,
@@ -78,6 +80,7 @@ import { User, UserSchema } from './schemas/user.schema';
     SiteConfigRepoService,
     GeoFenceRepoService,
     DeviceFirmwareRepoService,
+    UserLimitRepoService,
   ],
 })
 export class DatabaseModule {}

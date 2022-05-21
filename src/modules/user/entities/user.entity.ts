@@ -52,11 +52,7 @@ export class UserEntity {
   primaryContactNumber?: string;
   secondaryContactNumber?: string;
   alternateEmailAddress?: string;
-
-  @Exclude()
   maxDevice: number;
-
-  @Exclude()
   maxFencePerDevice: number;
 
   @Expose()
