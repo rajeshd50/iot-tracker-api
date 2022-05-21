@@ -7,6 +7,7 @@ import {
   Types,
   ProjectionType,
   QueryOptions,
+  LeanDocument,
 } from 'mongoose';
 import { Cache } from 'cache-manager';
 import {
@@ -14,6 +15,7 @@ import {
   DEFAULT_PER_PAGE,
   ROLE,
   SITE_CONFIG,
+  SITE_CONFIG_TYPES,
 } from 'src/config';
 import { SiteConfig, SiteConfigDocument } from '../schemas/site-config.schema';
 import { UserRepoService } from './UserRepo.service';
@@ -59,34 +61,131 @@ export class SiteConfigRepoService {
           CACHE_CONSTANTS.SITE_CONFIG.BY_KEY(key.toLocaleLowerCase()),
         );
       }
-      if (!siteConfigData) {
-        siteConfigData = await this.siteConfigModel.findOne(
-          {
-            key: key.toLocaleLowerCase(),
-          },
-          projection,
-          options,
-        );
-        if (siteConfigData) {
-          await this.cacheManager.set(
-            CACHE_CONSTANTS.SITE_CONFIG.BY_KEY(key.toLocaleLowerCase()),
-            siteConfigData.toObject(),
-          );
-        }
+      if (siteConfigData) {
+        return siteConfigData;
       }
-      return siteConfigData;
+      siteConfigData = await this.siteConfigModel.findOne(
+        {
+          key: key.toLocaleLowerCase(),
+        },
+        projection,
+        options,
+      );
+      if (siteConfigData) {
+        await this.setSiteConfigCache(siteConfigData.toObject());
+      }
+      return siteConfigData ? siteConfigData.toObject() : null;
     } catch (error) {
       this.logger.error(`Error while finding site config by key`, error);
       throw error;
     }
   }
 
-  public async getValueByKey(key: string): Promise<any> {
-    let value: any = null;
+  public async syncAvailableConfig() {
     try {
+      const availableKeys = await this.getAvailableKeys(true);
+      const availableInConfig = Object.assign({}, SITE_CONFIG);
+      const toInsertData: AnyKeys<SiteConfigDocument>[] = [];
+      const availableInConfigKeyArray = Object.keys(availableInConfig);
+
+      for (let i = 0; i < availableInConfigKeyArray.length; i++) {
+        if (!availableKeys.includes(availableInConfigKeyArray[i])) {
+          toInsertData.push({
+            key: availableInConfigKeyArray[i],
+            value: availableInConfig[availableInConfigKeyArray[i]].defaultValue,
+            type: availableInConfig[availableInConfigKeyArray[i]].type,
+            description:
+              availableInConfig[availableInConfigKeyArray[i]].description,
+            isMultipleEntry:
+              availableInConfig[availableInConfigKeyArray[i]].isMultipleEntry ||
+              false,
+          });
+        }
+      }
+
+      for (let i = 0; i < toInsertData.length; i++) {
+        await this.createOrUpdate(toInsertData[i]);
+      }
+      await this.getAvailableKeys(true);
+    } catch (error) {
+      this.logger.error(`Error while syncing available site configs`, error);
+      throw error;
+    }
+  }
+
+  public async getAvailableKeys(ignoreCache = false) {
+    try {
+      let allAvailableKeys: string[] = [];
+      if (!ignoreCache) {
+        allAvailableKeys = await this.cacheManager.get(
+          CACHE_CONSTANTS.SITE_CONFIG.ALL_AVAILABLE_KEYS,
+        );
+      }
+      if (!allAvailableKeys || !allAvailableKeys.length) {
+        const allSiteConfigs = await this.siteConfigModel.find({});
+        if (allSiteConfigs && allSiteConfigs.length) {
+          allAvailableKeys = allSiteConfigs.map((sc) => sc.key);
+          await this.cacheManager.set(
+            CACHE_CONSTANTS.SITE_CONFIG.ALL_AVAILABLE_KEYS,
+            allAvailableKeys,
+          );
+        }
+      }
+      return allAvailableKeys || [];
+    } catch (error) {
+      this.logger.error(`Error while finding all available keys`, error);
+      throw error;
+    }
+  }
+
+  private getValueByType(value: any, type: SITE_CONFIG_TYPES) {
+    try {
+      switch (type) {
+        case SITE_CONFIG_TYPES.BOOLEAN:
+          if (!value) {
+            return false;
+          }
+          if (value === 'true') {
+            return true;
+          }
+          if (value === 'false') {
+            return false;
+          }
+          return !!value;
+        case SITE_CONFIG_TYPES.TEXT:
+          return value || '';
+        case SITE_CONFIG_TYPES.NUMBER:
+          return parseInt(String(value), 10);
+        case SITE_CONFIG_TYPES.DATE:
+        case SITE_CONFIG_TYPES.DATE_TIME:
+          return value ? new Date(value) : null;
+        default:
+          return value || '';
+      }
+    } catch (error) {
+      this.logger.error(
+        `Error while converting site key value ${value} to ${type}`,
+      );
+      return null;
+    }
+  }
+
+  public async getValueByKey<T>(
+    key: string,
+    defaultValue: T,
+  ): Promise<T | null> {
+    let value: T = defaultValue;
+    try {
+      value = await this.cacheManager.get(
+        CACHE_CONSTANTS.SITE_CONFIG.VALUE_BY_KEY(key.toLocaleLowerCase()),
+      );
+      if (value !== undefined) {
+        return value;
+      }
       const siteConfig = await this.findByKey(key);
-      if (siteConfig && siteConfig.value) {
-        value = siteConfig.value;
+      if (siteConfig && siteConfig.value !== undefined) {
+        value = this.getValueByType(siteConfig.value, siteConfig.type) as T;
+        await this.setSiteConfigCache(siteConfig);
       }
     } catch (error) {
       this.logger.error(`Error while finding site config value by key`, error);
@@ -95,7 +194,7 @@ export class SiteConfigRepoService {
     return value;
   }
 
-  public async create(data: AnyKeys<SiteConfigDocument>) {
+  public async createOrUpdate(data: AnyKeys<SiteConfigDocument>) {
     try {
       if (!data.key) {
         throw new Error('Key required');
@@ -105,7 +204,8 @@ export class SiteConfigRepoService {
         return this.findByIdAndUpdate(existingSiteConfig._id, data);
       } else {
         const siteConfigCreated = await this.siteConfigModel.create(data);
-        await this.setSiteConfigCache(siteConfigCreated);
+        await this.setSiteConfigCache(siteConfigCreated.toObject());
+        await this.getAvailableKeys(true);
         return siteConfigCreated.toObject();
       }
     } catch (error) {
@@ -150,7 +250,7 @@ export class SiteConfigRepoService {
         total,
         page,
         perPage: limit,
-        items: siteConfigs.map((dp) => dp.toObject()),
+        items: siteConfigs,
       };
     } catch (error) {
       this.logger.error(`Error while finding site config`, error);
@@ -160,11 +260,12 @@ export class SiteConfigRepoService {
 
   public async delete(query: FilterQuery<SiteConfigDocument>) {
     try {
-      const siteConfigs = await this.siteConfigModel.find(query);
+      const siteConfigs = await this.findAll(query);
       await this.siteConfigModel.deleteMany(query);
       for (let i = 0; i < siteConfigs.length; i++) {
         await this.deleteSiteConfigCache(siteConfigs[i]);
       }
+      await this.getAvailableKeys(true);
     } catch (error) {
       this.logger.error(`Error while deleting site configs`, error);
       throw error;
@@ -189,18 +290,20 @@ export class SiteConfigRepoService {
     updateData: AnyKeys<SiteConfigDocument>,
   ) {
     try {
-      const updatedSiteConfigData =
-        await this.siteConfigModel.findByIdAndUpdate(
-          id,
-          {
-            ...updateData,
-          },
-          {
-            new: true,
-          },
-        );
-      await this.setSiteConfigCache(updatedSiteConfigData);
-      return this.findOne({ _id: updatedSiteConfigData._id });
+      await this.siteConfigModel.findByIdAndUpdate(
+        id,
+        {
+          ...updateData,
+        },
+        {
+          new: true,
+        },
+      );
+      const updatedSiteConfigData = await this.findOne({ _id: id });
+      if (updatedSiteConfigData) {
+        await this.setSiteConfigCache(updatedSiteConfigData);
+      }
+      return updatedSiteConfigData;
     } catch (error) {
       this.logger.error(`Error while updating site config`, error);
       throw error;
@@ -210,8 +313,9 @@ export class SiteConfigRepoService {
   // special methods to fetch particular data
   public async findAdminMailingList() {
     try {
-      const mailingListValue = await this.getValueByKey(
+      const mailingListValue = await this.getValueByKey<string>(
         SITE_CONFIG.ADMIN_MAILING_LIST.text,
+        '',
       );
       const adminUsers = await this.userRepoService.findAll({
         role: ROLE.ADMIN,
@@ -219,7 +323,7 @@ export class SiteConfigRepoService {
       const allEmails: string[] = [];
       const mailingListArr: string[] = mailingListValue
         ? mailingListValue
-            .split(', ')
+            .split(',')
             .map((x) => x.trim())
             .filter((x) => !!x)
         : [];
@@ -235,7 +339,9 @@ export class SiteConfigRepoService {
     }
   }
 
-  private async setSiteConfigCache(siteConfigData: SiteConfigDocument) {
+  private async setSiteConfigCache(
+    siteConfigData: LeanDocument<SiteConfigDocument>,
+  ) {
     try {
       await this.cacheManager.set(
         CACHE_CONSTANTS.SITE_CONFIG.BY_KEY(siteConfigData.key),
@@ -244,6 +350,10 @@ export class SiteConfigRepoService {
       await this.cacheManager.set(
         CACHE_CONSTANTS.SITE_CONFIG.BY_ID(siteConfigData._id),
         siteConfigData,
+      );
+      await this.cacheManager.set(
+        CACHE_CONSTANTS.SITE_CONFIG.VALUE_BY_KEY(siteConfigData.key),
+        this.getValueByType(siteConfigData.value, siteConfigData.type) || '',
       );
     } catch (error) {
       this.logger.error(`Error while setting site config cache`, error);
@@ -251,13 +361,18 @@ export class SiteConfigRepoService {
     }
   }
 
-  private async deleteSiteConfigCache(siteConfigData: SiteConfigDocument) {
+  private async deleteSiteConfigCache(
+    siteConfigData: LeanDocument<SiteConfigDocument>,
+  ) {
     try {
       await this.cacheManager.del(
         CACHE_CONSTANTS.SITE_CONFIG.BY_KEY(siteConfigData.key),
       );
       await this.cacheManager.del(
         CACHE_CONSTANTS.SITE_CONFIG.BY_ID(siteConfigData._id),
+      );
+      await this.cacheManager.del(
+        CACHE_CONSTANTS.SITE_CONFIG.VALUE_BY_KEY(siteConfigData.key),
       );
     } catch (error) {
       this.logger.error(`Error while deleting site config cache`, error);

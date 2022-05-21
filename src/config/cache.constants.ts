@@ -16,5 +16,8 @@ export const CACHE_CONSTANTS = {
   SITE_CONFIG: {
     BY_KEY: (key: string) => `site_config_by_key_${key.toLocaleLowerCase()}`,
     BY_ID: (id: string) => `site_config_by_id_${id}`,
+    VALUE_BY_KEY: (key: string) =>
+      `site_config_value_by_key_${key.toLocaleLowerCase()}`,
+    ALL_AVAILABLE_KEYS: 'site_config_all_available_keys',
   },
 };

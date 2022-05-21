@@ -18,11 +18,14 @@ export class SiteConfig {
   })
   type: SITE_CONFIG_TYPES;
 
-  @Prop({ required: false })
+  @Prop({ required: false, default: '' })
   value: string;
 
-  @Prop({ required: false })
+  @Prop({ required: false, default: '' })
   description: string;
+
+  @Prop({ default: false })
+  isMultipleEntry: boolean;
 
   @Prop({ default: true })
   isActive: boolean;

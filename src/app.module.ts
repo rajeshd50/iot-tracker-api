@@ -20,6 +20,7 @@ import { BullModule } from '@nestjs/bull';
 import { CoreModule } from './modules/core/core.module';
 import { DeviceModule } from './modules/device/device.module';
 import { ReportModule } from './modules/report/report.module';
+import { SiteConfigModule } from './modules/site-config/site-config.module';
 
 @Module({
   imports: [
@@ -30,7 +31,6 @@ import { ReportModule } from './modules/report/report.module';
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => {
         if (configService.get<string>(ENV_CONSTANTS.ENV) === 'dev') {
-          console.log('Here');
           return {
             uri: configService.get<string>(ENV_CONSTANTS.DB_URI),
             dbName: configService.get<string>(ENV_CONSTANTS.DB_NAME),
@@ -98,6 +98,7 @@ import { ReportModule } from './modules/report/report.module';
     UserModule,
     DeviceModule,
     ReportModule,
+    SiteConfigModule,
   ],
   providers: [
     Logger,
