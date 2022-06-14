@@ -12,10 +12,16 @@ export enum SupportTicketStatus {
   INVALID = 'invalid',
 }
 
+export enum SupportTicketLogType {
+  DEFAULT = 'default',
+  COMMENT = 'comment',
+}
+
 export enum SupportTicketType {
   ACCOUNT = 'account',
   PAYMENT = 'payment',
   DEVICE = 'device',
+  LIMIT = 'limit',
   HELP = 'help',
   QUERY = 'query',
   TRACKING = 'tracking',
@@ -32,6 +38,16 @@ export class StatusLog {
     default: SupportTicketStatus.OPEN,
   })
   status: SupportTicketStatus;
+
+  @Prop({ required: false })
+  comment: string;
+
+  @Prop({
+    required: true,
+    enum: SupportTicketLogType,
+    default: SupportTicketLogType.DEFAULT,
+  })
+  type: SupportTicketLogType;
 
   @Prop({ required: true, default: new Date() })
   updatedAt: Date;
@@ -57,6 +73,9 @@ export class SupportTicket {
 
   @Prop({ required: true })
   subject: string;
+
+  @Prop({ required: true })
+  ticketNumber: string;
 
   @Prop({ required: true })
   description: string;

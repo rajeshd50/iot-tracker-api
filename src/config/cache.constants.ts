@@ -20,4 +20,7 @@ export const CACHE_CONSTANTS = {
       `site_config_value_by_key_${key.toLocaleLowerCase()}`,
     ALL_AVAILABLE_KEYS: 'site_config_all_available_keys',
   },
+  SUPPORT_TICKET: {
+    BY_ID: (id: string) => `support_ticket_by_id_${id}`,
+  },
 };
