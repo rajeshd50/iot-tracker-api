@@ -87,24 +87,20 @@ export class SiteConfigRepoService {
       const availableInConfig = Object.assign({}, SITE_CONFIG);
       const toInsertData: AnyKeys<SiteConfigDocument>[] = [];
       const availableInConfigKeyArray = Object.keys(availableInConfig).map(
-        (conf) => availableInConfig[conf].text,
+        (conf) => conf.toLocaleLowerCase(),
       );
-
       for (let i = 0; i < availableInConfigKeyArray.length; i++) {
         if (!availableKeys.includes(availableInConfigKeyArray[i])) {
+          const key = availableInConfigKeyArray[i].toUpperCase();
           toInsertData.push({
             key: availableInConfigKeyArray[i],
-            value: availableInConfig[availableInConfigKeyArray[i]].defaultValue,
-            type: availableInConfig[availableInConfigKeyArray[i]].type,
-            description:
-              availableInConfig[availableInConfigKeyArray[i]].description,
-            isMultipleEntry:
-              availableInConfig[availableInConfigKeyArray[i]].isMultipleEntry ||
-              false,
+            value: availableInConfig[key].defaultValue,
+            type: availableInConfig[key].type,
+            description: availableInConfig[key].description,
+            isMultipleEntry: availableInConfig[key].isMultipleEntry || false,
           });
         }
       }
-
       for (let i = 0; i < toInsertData.length; i++) {
         await this.createOrUpdate(toInsertData[i]);
       }
